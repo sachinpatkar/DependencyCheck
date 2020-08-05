@@ -83,21 +83,21 @@ public abstract class BaseDBTestCase extends BaseTest {
                     } catch (Throwable ex) {
                         LOGGER.error("", ex);
                     }
-                    //update the schema
-                    H2DBLock dblock = null;
-                    try {
-                        if (ConnectionFactory.isH2Connection(getSettings())) {
-                            dblock = new H2DBLock(getSettings());
-                            LOGGER.debug("locking for update");
-                            dblock.lock();
-                        }
-                        ConnectionFactory factory = new ConnectionFactory(getSettings());
-                        factory.initialize();
-                    } finally {
-                        if (dblock != null) {
-                            dblock.release();
-                        }
-                    }
+                }
+            }
+            //update the schema
+            H2DBLock dblock = null;
+            try {
+                if (ConnectionFactory.isH2Connection(getSettings())) {
+                    dblock = new H2DBLock(getSettings());
+                    LOGGER.debug("locking for update");
+                    dblock.lock();
+                }
+                ConnectionFactory factory = new ConnectionFactory(getSettings());
+                factory.initialize();
+            } finally {
+                if (dblock != null) {
+                    dblock.release();
                 }
             }
         }

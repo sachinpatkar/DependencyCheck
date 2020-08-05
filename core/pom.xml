@@ -251,7 +251,7 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>runtime</scope>
+            <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish</groupId>
