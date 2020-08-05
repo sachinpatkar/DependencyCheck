@@ -386,7 +386,7 @@ public final class CveDB implements AutoCloseable {
      */
     @SuppressWarnings("EmptyMethod")
     public synchronized void commit() throws SQLException {
-        //temporarly remove this as autocommit is on.
+        //temporarily remove this as autocommit is on.
         //if (isOpen()) {
         //    connection.commit();
         //}
