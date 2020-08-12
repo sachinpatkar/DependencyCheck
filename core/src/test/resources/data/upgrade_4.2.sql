@@ -30,7 +30,7 @@ ALTER TABLE vulnerability ADD   COLUMN v3ExploitabilityScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v3ImpactScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v3Version VARCHAR(5);
 
-CREATE ALIAS usp_updateVulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";
-CREATE ALIAS usp_insertSoftware FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.insertSoftware";
+CREATE ALIAS update_vulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";
+CREATE ALIAS insert_software FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.insertSoftware";
 
 UPDATE Properties SET value='5.0' WHERE ID='version';

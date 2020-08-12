@@ -4,7 +4,8 @@ DROP TABLE IF EXISTS reference;
 DROP TABLE IF EXISTS vulnerability;
 DROP TABLE IF EXISTS properties;
 DROP TABLE IF EXISTS cweEntry;
-DROP ALIAS IF EXISTS UPDATE_VULNERABILITY;
+DROP ALIAS IF EXISTS update_vulnerability;
+DROP ALIAS IF EXISTS insert_software;
 
 
 CREATE TABLE vulnerability (id int auto_increment PRIMARY KEY, cve VARCHAR(20) UNIQUE,
@@ -43,8 +44,8 @@ CREATE INDEX idxSoftwareCpe ON software(cpeEntryId);
 
 CREATE INDEX idxCpeEntry ON cpeEntry(part, vendor, product, version, update_version, edition, lang, sw_edition, target_sw, target_hw, other);
 
-CREATE ALIAS usp_updateVulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";
-CREATE ALIAS usp_insertSoftware FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.insertSoftware";
+CREATE ALIAS update_vulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";
+CREATE ALIAS insert_software FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.insertSoftware";
 
 CREATE TABLE properties (id varchar(50) PRIMARY KEY, value varchar(500));
 INSERT INTO properties(id, value) VALUES ('version', '5.0');
