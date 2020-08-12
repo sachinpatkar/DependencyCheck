@@ -48,7 +48,9 @@ public abstract class BaseDBTestCase extends BaseTest {
     @Override
     public void setUp() throws Exception {
         super.setUp();
-        ensureDBExists();
+        synchronized (this) {
+            ensureDBExists();
+        }
     }
 
     public void ensureDBExists() throws Exception {

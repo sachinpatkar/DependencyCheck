@@ -70,6 +70,9 @@ public class H2DBLock implements AutoCloseable {
      * A random string used to validate the lock.
      */
     private final String magic;
+    /**
+     * A flag indicating whether or not an H2 database is being used.
+     */
     private final boolean isLockable;
 
     /**
@@ -92,7 +95,7 @@ public class H2DBLock implements AutoCloseable {
      * Constructs a new H2DB Lock object with the configured settings.
      *
      * @param settings the configured settings
-     * @param isH2Connection a flag indicating if the lock is for an H@ database
+     * @param isH2Connection a flag indicating if the lock is for an H2 database
      * - if false the H2DBLock does nothing
      * @throws H2DBLockException thrown if a lock could not be obtained
      */
@@ -105,15 +108,6 @@ public class H2DBLock implements AutoCloseable {
         this.isLockable = isH2Connection;
         lock();
     }
-//
-//    /**
-//     * Determine if the lock is currently held.
-//     *
-//     * @return true if the lock is currently held
-//     */
-//    public boolean isLocked() {
-//        return lock != null && lock.isValid();
-//    }
 
     /**
      * Obtains a lock on the H2 database.
