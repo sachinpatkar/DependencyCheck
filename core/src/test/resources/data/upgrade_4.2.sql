@@ -1,4 +1,3 @@
-
 ALTER TABLE vulnerability ALTER COLUMN cvssV2Severity RENAME TO v2Severity;
 ALTER TABLE vulnerability ALTER COLUMN cvssV2Score RENAME TO v2Score;
 ALTER TABLE vulnerability ALTER COLUMN cvssV2AccessVector RENAME TO v2AccessVector;
@@ -17,7 +16,6 @@ ALTER TABLE vulnerability ALTER COLUMN cvssV3IntegrityImpact RENAME TO v3Integri
 ALTER TABLE vulnerability ALTER COLUMN cvssV3AvailabilityImpact RENAME TO v3AvailabilityImpact;
 ALTER TABLE vulnerability ALTER COLUMN cvssV3BaseScore RENAME TO v3BaseScore;
 ALTER TABLE vulnerability ALTER COLUMN cvssV3BaseSeverity RENAME TO v3BaseSeverity;
-
 ALTER TABLE vulnerability ADD   COLUMN v2ExploitabilityScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v2ImpactScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v2AcInsufInfo BOOLEAN;
