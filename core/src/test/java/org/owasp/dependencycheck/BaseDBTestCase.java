@@ -88,10 +88,10 @@ public abstract class BaseDBTestCase extends BaseTest {
                         }
                     }
                 }
+                //update the schema
+                ConnectionFactory factory = new ConnectionFactory(getSettings());
+                factory.initialize();
             }
-            //update the schema
-            ConnectionFactory factory = new ConnectionFactory(getSettings());
-            factory.initialize();
         }
     }
 }
