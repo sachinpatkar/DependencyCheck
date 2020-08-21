@@ -247,7 +247,7 @@ public class CvssV2 implements Serializable {
      *
      * @return the exploitabilityScore
      */
-    public float getExploitabilityScore() {
+    public Float getExploitabilityScore() {
         return exploitabilityScore;
     }
 
