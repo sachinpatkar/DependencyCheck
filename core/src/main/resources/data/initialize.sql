@@ -4,6 +4,7 @@ DROP TABLE IF EXISTS reference;
 DROP TABLE IF EXISTS vulnerability;
 DROP TABLE IF EXISTS properties;
 DROP TABLE IF EXISTS cweEntry;
+DROP TABLE IF EXISTS cpeEcosystemCache;
 DROP ALIAS IF EXISTS update_vulnerability;
 DROP ALIAS IF EXISTS insert_software;
 
@@ -35,13 +36,14 @@ CREATE TABLE software (cveid INT, cpeEntryId INT, versionEndExcluding VARCHAR(50
 CREATE TABLE cweEntry (cveid INT, cwe VARCHAR(20),
     CONSTRAINT fkCweEntry FOREIGN KEY (cveid) REFERENCES vulnerability(id) ON DELETE CASCADE);
 
+CREATE TABLE cpeEcosystemCache (vendor VARCHAR(255), product VARCHAR(255), ecosystem VARCHAR(255), PRIMARY KEY (vendor, product));
+INSERT INTO cpeEcosystemCache (vendor, product, ecosystem) VALUES ('apache', 'zookeeper', 'MULTIPLE');
+
 CREATE INDEX idxCwe ON cweEntry(cveid);
 CREATE INDEX idxVulnerability ON vulnerability(cve);
 CREATE INDEX idxReference ON reference(cveid);
-CREATE INDEX idxCpe ON cpeEntry(vendor, product);
 CREATE INDEX idxSoftwareCve ON software(cveid);
 CREATE INDEX idxSoftwareCpe ON software(cpeEntryId);
-
 CREATE INDEX idxCpeEntry ON cpeEntry(part, vendor, product, version, update_version, edition, lang, sw_edition, target_sw, target_hw, other);
 
 CREATE ALIAS update_vulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";

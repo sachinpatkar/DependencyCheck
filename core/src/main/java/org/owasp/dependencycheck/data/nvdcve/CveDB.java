@@ -49,6 +49,7 @@ import org.owasp.dependencycheck.data.nvd.json.NodeFlatteningCollector;
 import org.owasp.dependencycheck.data.nvd.json.ProblemtypeDatum;
 import org.owasp.dependencycheck.data.nvd.json.Reference;
 import static org.owasp.dependencycheck.data.nvdcve.CveDB.PreparedStatementCveDb.*;
+import org.owasp.dependencycheck.data.update.cpe.CpeEcosystemCache;
 import org.owasp.dependencycheck.data.update.cpe.CpePlus;
 import org.owasp.dependencycheck.dependency.CvssV2;
 import org.owasp.dependencycheck.dependency.CvssV3;
@@ -209,7 +210,15 @@ public final class CveDB implements AutoCloseable {
         /**
          * Key for SQL Statement.
          */
-        UPDATE_VULNERABILITY
+        UPDATE_VULNERABILITY,
+        /**
+         * Key for SQL Statement.
+         */
+        SELECT_CPE_ECOSYSTEM,
+        /**
+         * Key for SQL Statement.
+         */
+        MERGE_CPE_ECOSYSTEM
     }
 
     /**
@@ -810,10 +819,11 @@ public final class CveDB implements AutoCloseable {
      *
      * @param cve the vulnerability from the NVD CVE Data Feed to add to the
      * database
-     * @param ecosystem the ecosystem the CVE belongs to
+     * @param baseEcosystem the ecosystem the CVE belongs to; this is based off
+     * of things like the CVE description
      * @throws DatabaseException is thrown if the database
      */
-    public void updateVulnerability(DefCveItem cve, String ecosystem) {
+    public void updateVulnerability(DefCveItem cve, String baseEcosystem) {
         clearCache();
         final String cveId = cve.getCve().getCVEDataMeta().getId();
         try {
@@ -827,7 +837,7 @@ public final class CveDB implements AutoCloseable {
 
                 //parse the CPEs outside of a synchronized method
                 final List<VulnerableSoftware> software = parseCpes(cve);
-                updateVulnerabilityInsertSoftware(vulnerabilityId, cveId, software, ecosystem);
+                updateVulnerabilityInsertSoftware(vulnerabilityId, cveId, software, baseEcosystem);
             }
 
         } catch (SQLException ex) {
@@ -841,6 +851,50 @@ public final class CveDB implements AutoCloseable {
         }
     }
 
+    private void loadCpeEcosystemCache() {
+        Map<Pair<String, String>, String> map = new HashMap<>();
+        ResultSet rs;
+        try (PreparedStatement ps = prepareStatement(SELECT_CPE_ECOSYSTEM)) {
+            rs = ps.executeQuery();
+            while (rs.next()) {
+                Pair<String, String> key = new Pair<>(rs.getString(1), rs.getString(1));
+                String value = rs.getString(3);
+                map.put(key, value);
+            }
+        } catch (SQLException ex) {
+            final String msg = String.format("Error loading the Cpe Ecosystem Cache: %s", ex.getMessage());
+            LOGGER.debug(msg, ex);
+            throw new DatabaseException(msg, ex);
+        }
+
+        CpeEcosystemCache.setCache(map);
+    }
+
+    private void saveCpeEcosystemCache() {
+        Map<Pair<String, String>, String> map = CpeEcosystemCache.getChanged();
+        if (map != null && !map.isEmpty()) {
+            try (PreparedStatement ps = prepareStatement(MERGE_CPE_ECOSYSTEM)) {
+                for (Map.Entry<Pair<String, String>, String> entry : map.entrySet()) {
+                    ps.setString(1, entry.getKey().getLeft());
+                    ps.setString(2, entry.getKey().getRight());
+                    ps.setString(3, entry.getValue());
+                    if (isBatchInsertEnabled()) {
+                        ps.addBatch();
+                    } else {
+                        ps.execute();
+                    }
+                }
+                if (isBatchInsertEnabled()) {
+                    ps.executeBatch();
+                }
+            } catch (SQLException ex) {
+                final String msg = String.format("Error saving the Cpe Ecosystem Cache: %s", ex.getMessage());
+                LOGGER.debug(msg, ex);
+                throw new DatabaseException(msg, ex);
+            }
+        }
+    }
+
     /**
      * Used when updating a vulnerability - this method inserts the
      * vulnerability entry itself.
@@ -850,6 +904,9 @@ public final class CveDB implements AutoCloseable {
      * @return the vulnerability ID
      */
     private synchronized int updateOrInsertVulnerability(DefCveItem cve, String description) {
+        if (CpeEcosystemCache.isEmpty()) {
+            loadCpeEcosystemCache();
+        }
         final int vulnerabilityId;
         try (PreparedStatement callUpdate = prepareStatement(UPDATE_VULNERABILITY)) {
             if (callUpdate == null) {
@@ -1032,7 +1089,9 @@ public final class CveDB implements AutoCloseable {
                 insertSoftware.setString(10, parsedCpe.getTargetSw());
                 insertSoftware.setString(11, parsedCpe.getTargetHw());
                 insertSoftware.setString(12, parsedCpe.getOther());
-                final String ecosystem = cveItemConverter.extractEcosystem(baseEcosystem, parsedCpe);
+                String ecosystem = CpeEcosystemCache.getEcosystem(parsedCpe.getVendor(), parsedCpe.getProduct(), 
+                        cveItemConverter.extractEcosystem(baseEcosystem, parsedCpe));
+
                 addNullableStringParameter(insertSoftware, 13, ecosystem);
                 addNullableStringParameter(insertSoftware, 14, parsedCpe.getVersionEndExcluding());
                 addNullableStringParameter(insertSoftware, 15, parsedCpe.getVersionEndIncluding());
@@ -1063,8 +1122,7 @@ public final class CveDB implements AutoCloseable {
 
     /**
      * Used when updating a vulnerability - this method inserts the list of
-     * references. In addition, this method attempts to determine the ecosystem
-     * based on the references information.
+     * references.
      *
      * @param vulnerabilityId the vulnerability id
      * @param cve the CVE entry that contains the list of references
@@ -1196,17 +1254,6 @@ public final class CveDB implements AutoCloseable {
     }
 
     /**
-     * Generates a logging message for batch inserts.
-     *
-     * @param pCountReferences the number of batch statements executed
-     * @param pFormat a Java String.format string
-     * @return the formated string
-     */
-    private String getLogForBatchInserts(int pCountReferences, String pFormat) {
-        return String.format(pFormat, pCountReferences, new Date());
-    }
-
-    /**
      * Executes batch inserts of vulnerabilities when property
      * database.batchinsert.maxsize is reached.
      *
@@ -1273,6 +1320,7 @@ public final class CveDB implements AutoCloseable {
     public synchronized void cleanupDatabase() {
         LOGGER.info("Begin database maintenance");
         final long start = System.currentTimeMillis();
+        saveCpeEcosystemCache();
         clearCache();
         try (PreparedStatement psOrphans = getPreparedStatement(CLEANUP_ORPHANS);
                 PreparedStatement psEcosystem = getPreparedStatement(UPDATE_ECOSYSTEM);

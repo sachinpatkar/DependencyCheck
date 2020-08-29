@@ -28,6 +28,9 @@ ALTER TABLE vulnerability ADD   COLUMN v3ExploitabilityScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v3ImpactScore DECIMAL(3,1);
 ALTER TABLE vulnerability ADD   COLUMN v3Version VARCHAR(5);
 
+CREATE TABLE cpeEcosystemCache (vendor VARCHAR(255), product VARCHAR(255), ecosystem VARCHAR(255), PRIMARY KEY (vendor, product));
+INSERT INTO cpeEcosystemCache (vendor, product, ecosystem) VALUES ('apache', 'zookeeper', 'MULTIPLE');
+
 CREATE ALIAS update_vulnerability FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.updateVulnerability";
 CREATE ALIAS insert_software FOR "org.owasp.dependencycheck.data.nvdcve.H2Functions.insertSoftware";
 
