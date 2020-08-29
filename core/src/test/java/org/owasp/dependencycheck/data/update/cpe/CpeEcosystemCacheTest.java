@@ -33,15 +33,6 @@ import org.owasp.dependencycheck.utils.Pair;
  */
 public class CpeEcosystemCacheTest {
 
-    @Before
-    public void setUp() {
-
-    }
-
-    @After
-    public void tearDown() {
-    }
-
     /**
      * Test of getEcosystem method, of class CpeEcosystemCache.
      */
@@ -56,9 +47,9 @@ public class CpeEcosystemCacheTest {
         String result = CpeEcosystemCache.getEcosystem("apache", "zookeeper", null);
         assertEquals(expected, result);
         
-        expected = "MULTIPLE";
+        //changes to MULTIPLE = which is returned as null
         result = CpeEcosystemCache.getEcosystem("apache", "zookeeper", "c++");
-        assertEquals(expected, result);
+        assertNull(result);
         
         result = CpeEcosystemCache.getEcosystem("pivotal", "spring-framework", null);
         assertNull(result);
@@ -112,17 +103,15 @@ public class CpeEcosystemCacheTest {
         assertTrue(result.isEmpty());
 
         CpeEcosystemCache.getEcosystem("apache", "zookeeper", "java");
-
         result = CpeEcosystemCache.getChanged();
         assertTrue(result.isEmpty());
 
         CpeEcosystemCache.getEcosystem("apache", "zookeeper", null);
-
         result = CpeEcosystemCache.getChanged();
         assertTrue(result.isEmpty());
 
+        //zookeeper is already at multiple- no change
         CpeEcosystemCache.getEcosystem("apache", "zookeeper", "c++");
-
         result = CpeEcosystemCache.getChanged();
         assertFalse(result.isEmpty());
     }
