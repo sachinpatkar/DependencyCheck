@@ -3,6 +3,7 @@
 #DROP database dependencycheck;
 
 #CREATE database dependencycheck;
+
 USE dependencycheck;
 
 DROP PROCEDURE IF EXISTS dependencycheck.save_property;
@@ -11,12 +12,14 @@ DROP PROCEDURE IF EXISTS dependencycheck.update_ecosystems2;
 DROP PROCEDURE IF EXISTS dependencycheck.cleanup_orphans;
 DROP PROCEDURE IF EXISTS dependencycheck.update_vulnerability;
 DROP PROCEDURE IF EXISTS dependencycheck.insert_software;
+DROP PROCEDURE IF EXISTS dependencycheck.merge_ecosystem;
 DROP TABLE IF EXISTS software;
 DROP TABLE IF EXISTS cpeEntry;
 DROP TABLE IF EXISTS `reference`;
 DROP TABLE IF EXISTS properties;
 DROP TABLE IF EXISTS cweEntry;
 DROP TABLE IF EXISTS vulnerability;
+DROP TABLE IF EXISTS cpeEcosystemCache;
 
 CREATE TABLE vulnerability (id int auto_increment PRIMARY KEY, cve VARCHAR(20) UNIQUE,
 	description VARCHAR(8000), v2Severity VARCHAR(20), v2ExploitabilityScore DECIMAL(3,1), 
@@ -45,6 +48,9 @@ CREATE TABLE software (cveid INT, cpeEntryId INT, versionEndExcluding VARCHAR(50
 CREATE TABLE cweEntry (cveid INT, cwe VARCHAR(20),
     CONSTRAINT fkCweEntry FOREIGN KEY (cveid) REFERENCES vulnerability(id) ON DELETE CASCADE);
 
+CREATE TABLE cpeEcosystemCache (vendor VARCHAR(255), product VARCHAR(255), ecosystem VARCHAR(255), PRIMARY KEY (vendor, product));
+INSERT INTO cpeEcosystemCache (vendor, product, ecosystem) VALUES ('apache', 'zookeeper', 'MULTIPLE');
+
 CREATE INDEX idxCwe ON cweEntry(cveid);
 CREATE INDEX idxVulnerability ON vulnerability(cve);
 CREATE INDEX idxReference ON `reference`(cveid);
@@ -69,45 +75,17 @@ DELIMITER ;
 
 GRANT EXECUTE ON PROCEDURE dependencycheck.save_property TO 'dcuser';
 
+
 DELIMITER //
-CREATE PROCEDURE update_ecosystems()
+CREATE PROCEDURE merge_ecosystem
+(IN p_vendor VARCHAR(255), IN p_product VARCHAR(255), IN p_ecosystem varchar(255))
 BEGIN
-SET @OLD_SQL_SAFE_UPDATES = (SELECT @@SQL_SAFE_UPDATES);
-SET SQL_SAFE_UPDATES = 0;
-UPDATE cpeEntry n INNER JOIN
-    (SELECT DISTINCT vendor, product, MIN(ecosystem) eco
-    FROM cpeEntry
-    WHERE ecosystem IS NOT NULL
-    GROUP BY vendor , product) e 
-  ON e.vendor = n.vendor
-  AND e.product = n.product 
-SET n.ecosystem = e.eco
-WHERE n.ecosystem IS NULL;
-SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
+INSERT INTO cpeEcosystemCache (`vendor`, `product`, `ecosystem`) VALUES (p_vendor, p_product, p_ecosystem)
+	ON DUPLICATE KEY UPDATE `ecosystem`=p_ecosystem;
 END //
 DELIMITER ;
 
-GRANT EXECUTE ON PROCEDURE dependencycheck.update_ecosystems TO 'dcuser';
-
-DELIMITER //
-CREATE PROCEDURE update_ecosystems2()
-BEGIN
-SET @OLD_SQL_SAFE_UPDATES = (SELECT @@SQL_SAFE_UPDATES);
-SET SQL_SAFE_UPDATES = 0;
-UPDATE cpeEntry e SET e.ecosystem = NULL 
-WHERE e.id IN (SELECT * FROM 
-    (SELECT DISTINCT entry.id FROM vulnerability v 
-        INNER JOIN software s ON v.id = s.cveid 
-        INNER JOIN cpeEntry r ON s.cpeentryid=r.id 
-        INNER JOIN cpeEntry entry ON r.part = entry.part AND r.vendor = entry.vendor AND r.product = entry.product 
-    WHERE description like '%bindings%' AND r.ecosystem is not null AND entry.ecosystem is not null 
-    UNION ALL 
-    SELECT z.id FROM cpeEntry z WHERE z.ecosystem is not null AND z.vendor = 'apache' AND z.product = 'zookeeper') x);
-SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
-END //
-DELIMITER ;
-
-GRANT EXECUTE ON PROCEDURE dependencycheck.update_ecosystems2 TO 'dcuser';
+GRANT EXECUTE ON PROCEDURE dependencycheck.merge_ecosystem TO 'dcuser';
 
 DELIMITER //
 CREATE PROCEDURE cleanup_orphans()
@@ -241,5 +219,40 @@ END //
 DELIMITER ;
 
 GRANT EXECUTE ON PROCEDURE dependencycheck.insert_software TO 'dcuser';
+
+DELIMITER //
+CREATE PROCEDURE update_ecosystems()
+BEGIN
+    SET @OLD_SQL_SAFE_UPDATES = (SELECT @@SQL_SAFE_UPDATES);
+    SET SQL_SAFE_UPDATES = 0;
+    UPDATE cpeEntry e INNER JOIN cpeEcosystemCache c
+    	ON c.vendor=e.vendor 
+        AND c.product=e.product
+    SET e.ecosystem=c.ecosystem 
+    WHERE e.ecosystem IS NULL AND c.ecosystem<>'MULTIPLE';
+
+    SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
+END //
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE dependencycheck.update_ecosystems TO 'dcuser';
+
+DELIMITER //
+CREATE PROCEDURE update_ecosystems2()
+BEGIN
+    SET @OLD_SQL_SAFE_UPDATES = (SELECT @@SQL_SAFE_UPDATES);
+    SET SQL_SAFE_UPDATES = 0;
+    UPDATE cpeEntry e INNER JOIN cpeEcosystemCache c
+            ON c.vendor=e.vendor 
+            AND c.product=e.product
+    SET e.ecosystem=null
+    WHERE c.ecosystem='MULTIPLE' 
+    AND e.ecosystem IS NOT NULL;
+
+    SET SQL_SAFE_UPDATES = @OLD_SQL_SAFE_UPDATES;
+END //
+DELIMITER ;
+
+GRANT EXECUTE ON PROCEDURE dependencycheck.update_ecosystems2 TO 'dcuser';
 
 INSERT INTO properties(id, value) VALUES ('version', '5.0');
