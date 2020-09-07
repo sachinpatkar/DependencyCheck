@@ -484,7 +484,7 @@ public class App {
 <span class="fc" id="L484">        settings.setBoolean(Settings.KEYS.ANALYZER_GOLANG_MOD_ENABLED,</span>
 <span class="pc bpc" id="L485" title="1 of 2 branches missed.">                !cli.hasDisableOption(CliParser.ARGUMENT.DISABLE_GOLANG_MOD, Settings.KEYS.ANALYZER_GOLANG_MOD_ENABLED));</span>
 <span class="fc" id="L486">        settings.setBoolean(Settings.KEYS.ANALYZER_NODE_PACKAGE_ENABLED,</span>
-<span class="pc bpc" id="L487" title="1 of 2 branches missed.">                !cli.hasDisableOption(CliParser.ARGUMENT.DISABLE_NODE_JS, Settings.KEYS.ANALYZER_NODE_PACKAGE_ENABLED));</span>
+<span class="fc bfc" id="L487" title="All 2 branches covered.">                !cli.hasDisableOption(CliParser.ARGUMENT.DISABLE_NODE_JS, Settings.KEYS.ANALYZER_NODE_PACKAGE_ENABLED));</span>
         //TODO next major - remove the deprecated check in isNodeAuditDisabled
 <span class="fc" id="L489">        settings.setBoolean(Settings.KEYS.ANALYZER_NODE_AUDIT_ENABLED,</span>
 <span class="pc bpc" id="L490" title="1 of 2 branches missed.">                !cli.isNodeAuditDisabled());</span>

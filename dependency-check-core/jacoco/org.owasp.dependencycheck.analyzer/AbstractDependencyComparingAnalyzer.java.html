@@ -90,16 +90,16 @@ import org.owasp.dependencycheck.dependency.Dependency;
             }
 <span class="fc bfc" id="L91" title="All 2 branches covered.">            for (int x = 0; x &lt; dependencies.length - 1; x++) {</span>
 <span class="fc" id="L92">                final Dependency dependency = dependencies[x];</span>
-<span class="fc bfc" id="L93" title="All 2 branches covered.">                if (!dependenciesToRemove.contains(dependency)) {</span>
+<span class="pc bpc" id="L93" title="1 of 2 branches missed.">                if (!dependenciesToRemove.contains(dependency)) {</span>
 <span class="fc bfc" id="L94" title="All 2 branches covered.">                    for (int y = x + 1; y &lt; dependencies.length; y++) {</span>
 <span class="fc" id="L95">                        final Dependency nextDependency = dependencies[y];</span>
-<span class="fc bfc" id="L96" title="All 2 branches covered.">                        if (evaluateDependencies(dependency, nextDependency, dependenciesToRemove)) {</span>
-<span class="fc" id="L97">                            break;</span>
+<span class="pc bpc" id="L96" title="1 of 2 branches missed.">                        if (evaluateDependencies(dependency, nextDependency, dependenciesToRemove)) {</span>
+<span class="nc" id="L97">                            break;</span>
                         }
                     }
                 }
             }
-<span class="fc" id="L102">            dependenciesToRemove.forEach((d) -&gt; engine.removeDependency(d));</span>
+<span class="pc" id="L102">            dependenciesToRemove.forEach((d) -&gt; engine.removeDependency(d));</span>
         }
 <span class="fc" id="L104">    }</span>
 

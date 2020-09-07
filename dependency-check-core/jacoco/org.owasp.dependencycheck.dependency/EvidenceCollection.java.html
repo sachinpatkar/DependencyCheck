@@ -290,7 +290,7 @@ import org.owasp.dependencycheck.utils.Filter;
      * @return the unmodifiable set of evidence
      */
     public synchronized Set&lt;Evidence&gt; getEvidence() {
-<span class="fc" id="L293">        final Set e = new HashSet&lt;&gt;(vendors);</span>
+<span class="fc" id="L293">        final Set&lt;Evidence&gt; e = new HashSet&lt;&gt;(vendors);</span>
 <span class="fc" id="L294">        e.addAll(products);</span>
 <span class="fc" id="L295">        e.addAll(versions);</span>
 <span class="fc" id="L296">        return Collections.unmodifiableSet(e);</span>

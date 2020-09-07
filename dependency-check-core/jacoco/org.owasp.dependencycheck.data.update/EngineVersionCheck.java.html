@@ -17,13 +17,13 @@
  */
 package org.owasp.dependencycheck.data.update;
 
+import com.google.common.io.ByteStreams;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import javax.annotation.concurrent.ThreadSafe;
-import org.apache.commons.io.IOUtils;
 import org.owasp.dependencycheck.Engine;
 import org.owasp.dependencycheck.data.nvdcve.CveDB;
 import org.owasp.dependencycheck.data.nvdcve.DatabaseException;
@@ -129,7 +129,7 @@ public class EngineVersionCheck implements CachedWebDataSource {
              * enabled, and the NVD CVE URLs have not been modified (i.e. the
              * user has not configured them to point to an internal source).
              */
-<span class="pc bpc" id="L132" title="4 of 8 branches missed.">            if (enabled &amp;&amp; autoupdate &amp;&amp; original != null &amp;&amp; original.equals(current)) {</span>
+<span class="pc bpc" id="L132" title="3 of 8 branches missed.">            if (enabled &amp;&amp; autoupdate &amp;&amp; original != null &amp;&amp; original.equals(current)) {</span>
 <span class="fc" id="L133">                LOGGER.debug(&quot;Begin Engine Version Check&quot;);</span>
 
 <span class="fc" id="L135">                final DatabaseProperties properties = db.getDatabaseProperties();</span>
@@ -217,7 +217,7 @@ public class EngineVersionCheck implements CachedWebDataSource {
 <span class="pc bpc" id="L217" title="1 of 2 branches missed.">            if (conn.getResponseCode() != 200) {</span>
 <span class="nc" id="L218">                return null;</span>
             }
-<span class="fc" id="L220">            final String releaseVersion = IOUtils.toString(conn.getInputStream(), StandardCharsets.UTF_8);</span>
+<span class="fc" id="L220">            final String releaseVersion = new String(ByteStreams.toByteArray(conn.getInputStream()), StandardCharsets.UTF_8);</span>
 <span class="pc bpc" id="L221" title="1 of 2 branches missed.">            if (releaseVersion != null) {</span>
 <span class="fc" id="L222">                return releaseVersion.trim();</span>
             }

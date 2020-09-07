@@ -123,13 +123,13 @@ public class DataCacheFactory {
      */
     public DataCache&lt;List&lt;Advisory&gt;&gt; getNodeAuditCache() {
         try {
-<span class="nc" id="L126">            final ICompositeCacheAttributes attr = new CompositeCacheAttributes();</span>
-<span class="nc" id="L127">            attr.setUseDisk(true);</span>
-<span class="nc" id="L128">            attr.setUseLateral(false);</span>
-<span class="nc" id="L129">            attr.setUseRemote(false);</span>
-<span class="nc" id="L130">            final CacheAccess&lt;String, List&lt;Advisory&gt;&gt; ca = JCS.getInstance(&quot;NODEAUDIT&quot;, attr);</span>
-<span class="nc" id="L131">            final DataCache&lt;List&lt;Advisory&gt;&gt; dc = new DataCache&lt;&gt;(ca);</span>
-<span class="nc" id="L132">            return dc;</span>
+<span class="fc" id="L126">            final ICompositeCacheAttributes attr = new CompositeCacheAttributes();</span>
+<span class="fc" id="L127">            attr.setUseDisk(true);</span>
+<span class="fc" id="L128">            attr.setUseLateral(false);</span>
+<span class="fc" id="L129">            attr.setUseRemote(false);</span>
+<span class="fc" id="L130">            final CacheAccess&lt;String, List&lt;Advisory&gt;&gt; ca = JCS.getInstance(&quot;NODEAUDIT&quot;, attr);</span>
+<span class="fc" id="L131">            final DataCache&lt;List&lt;Advisory&gt;&gt; dc = new DataCache&lt;&gt;(ca);</span>
+<span class="fc" id="L132">            return dc;</span>
 <span class="nc" id="L133">        } catch (Throwable ex) {</span>
             //some reports of class not found exception, log and disable the cache.
 <span class="nc bnc" id="L135" title="All 2 branches missed.">            if (ex instanceof CacheException) {</span>

@@ -17,10 +17,12 @@
  */
 package org.owasp.dependencycheck.utils;
 
-import com.google.gson.Gson;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -57,7 +59,7 @@ public final class Settings {
     /**
      * The logger.
      */
-<span class="fc" id="L60">    private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);</span>
+<span class="fc" id="L62">    private static final Logger LOGGER = LoggerFactory.getLogger(Settings.class);</span>
     /**
      * The properties file location.
      */
@@ -69,7 +71,7 @@ public final class Settings {
     /**
      * The properties.
      */
-<span class="pc" id="L72">    private Properties props = null;</span>
+<span class="pc" id="L74">    private Properties props = null;</span>
     /**
      * The collection of properties that should be masked when logged.
      */
@@ -78,7 +80,12 @@ public final class Settings {
      * A reference to the temporary directory; used in case it needs to be
      * deleted during cleanup.
      */
-<span class="pc" id="L81">    private File tempDirectory = null;</span>
+<span class="pc" id="L83">    private File tempDirectory = null;</span>
+
+    /**
+     * Reference to a utility class used to convert objects to json.
+     */
+<span class="pc" id="L88">    private ObjectMapper objectMapper = new ObjectMapper();</span>
 
     //&lt;editor-fold defaultstate=&quot;collapsed&quot; desc=&quot;KEYS used to access settings&quot;&gt;
     /**
@@ -170,6 +177,14 @@ public final class Settings {
          * added CVE entries (last 8 days) using the JSON data feeds.
          */
         public static final String CVE_BASE_JSON = &quot;cve.url.base&quot;;
+        /**
+         * The username to use when connecting to the CVE-URL.
+         */
+        public static final String CVE_USER = &quot;cve.user&quot;;
+        /**
+         * The password to authenticate to the CVE-URL.
+         */
+        public static final String CVE_PASSWORD = &quot;cve.password&quot;;
         /**
          * The properties key for the URL to retrieve the recently modified and
          * added CVE entries (last 8 days).
@@ -647,6 +662,16 @@ public final class Settings {
          * that ODC will &quot;skip&quot; updating that years data feed if not present.
          */
         public static final String NVD_NEW_YEAR_GRACE_PERIOD = &quot;nvd.newyear.grace.period&quot;;
+        /**
+         * The properties key for the default max query size for Lucene query
+         * results.
+         */
+        public static final String MAX_QUERY_SIZE_DEFAULT = &quot;odc.ecosystem.maxquerylimit.default&quot;;
+        /**
+         * The properties key prefix for the default max query size for Lucene
+         * query results; append the ecosystem to obtain the default query size.
+         */
+        public static final String MAX_QUERY_SIZE_PREFIX = &quot;odc.ecosystem.maxquerylimit.&quot;;
 
         /**
          * private constructor because this is a &quot;utility&quot; class containing
@@ -661,9 +686,9 @@ public final class Settings {
     /**
      * Initialize the settings object.
      */
-<span class="fc" id="L664">    public Settings() {</span>
-<span class="fc" id="L665">        initialize(PROPERTIES_FILE);</span>
-<span class="fc" id="L666">    }</span>
+<span class="fc" id="L689">    public Settings() {</span>
+<span class="fc" id="L690">        initialize(PROPERTIES_FILE);</span>
+<span class="fc" id="L691">    }</span>
 
     /**
      * Initialize the settings object using the given properties.
@@ -671,19 +696,19 @@ public final class Settings {
      * @param properties the properties to be used with this Settings instance
      * @since 4.0.3
      */
-<span class="nc" id="L674">    public Settings(final Properties properties) {</span>
-<span class="nc" id="L675">        props = properties;</span>
-<span class="nc" id="L676">        logProperties(&quot;Properties loaded&quot;, props);</span>
-<span class="nc" id="L677">    }</span>
+<span class="nc" id="L699">    public Settings(final Properties properties) {</span>
+<span class="nc" id="L700">        props = properties;</span>
+<span class="nc" id="L701">        logProperties(&quot;Properties loaded&quot;, props);</span>
+<span class="nc" id="L702">    }</span>
 
     /**
      * Initialize the settings object using the given properties file.
      *
      * @param propertiesFilePath the path to the base properties file to load
      */
-<span class="nc" id="L684">    public Settings(@NotNull final String propertiesFilePath) {</span>
-<span class="nc" id="L685">        initialize(propertiesFilePath);</span>
-<span class="nc" id="L686">    }</span>
+<span class="nc" id="L709">    public Settings(@NotNull final String propertiesFilePath) {</span>
+<span class="nc" id="L710">        initialize(propertiesFilePath);</span>
+<span class="nc" id="L711">    }</span>
 
     /**
      * Initializes the settings object from the given file.
@@ -691,25 +716,25 @@ public final class Settings {
      * @param propertiesFilePath the path to the settings property file
      */
     private void initialize(@NotNull final String propertiesFilePath) {
-<span class="fc" id="L694">        props = new Properties();</span>
-<span class="fc" id="L695">        try (InputStream in = FileUtils.getResourceAsStream(propertiesFilePath)) {</span>
-<span class="fc" id="L696">            props.load(in);</span>
-<span class="nc" id="L697">        } catch (NullPointerException ex) {</span>
-<span class="nc" id="L698">            LOGGER.error(&quot;Did not find settings file '{}'.&quot;, propertiesFilePath);</span>
-<span class="nc" id="L699">            LOGGER.debug(&quot;&quot;, ex);</span>
-<span class="nc" id="L700">        } catch (IOException ex) {</span>
-<span class="nc" id="L701">            LOGGER.error(&quot;Unable to load settings from '{}'.&quot;, propertiesFilePath);</span>
-<span class="nc" id="L702">            LOGGER.debug(&quot;&quot;, ex);</span>
-<span class="pc" id="L703">        }</span>
-<span class="fc" id="L704">        logProperties(&quot;Properties loaded&quot;, props);</span>
-<span class="fc" id="L705">    }</span>
+<span class="fc" id="L719">        props = new Properties();</span>
+<span class="fc" id="L720">        try (InputStream in = FileUtils.getResourceAsStream(propertiesFilePath)) {</span>
+<span class="fc" id="L721">            props.load(in);</span>
+<span class="nc" id="L722">        } catch (NullPointerException ex) {</span>
+<span class="nc" id="L723">            LOGGER.error(&quot;Did not find settings file '{}'.&quot;, propertiesFilePath);</span>
+<span class="nc" id="L724">            LOGGER.debug(&quot;&quot;, ex);</span>
+<span class="nc" id="L725">        } catch (IOException ex) {</span>
+<span class="nc" id="L726">            LOGGER.error(&quot;Unable to load settings from '{}'.&quot;, propertiesFilePath);</span>
+<span class="nc" id="L727">            LOGGER.debug(&quot;&quot;, ex);</span>
+<span class="pc" id="L728">        }</span>
+<span class="fc" id="L729">        logProperties(&quot;Properties loaded&quot;, props);</span>
+<span class="fc" id="L730">    }</span>
 
     /**
      * Cleans up resources to prevent memory leaks.
      */
     public void cleanup() {
-<span class="nc" id="L711">        cleanup(true);</span>
-<span class="nc" id="L712">    }</span>
+<span class="nc" id="L736">        cleanup(true);</span>
+<span class="nc" id="L737">    }</span>
 
     /**
      * Cleans up resources to prevent memory leaks.
@@ -718,12 +743,12 @@ public final class Settings {
      * generated should be removed
      */
     public synchronized void cleanup(boolean deleteTemporary) {
-<span class="pc bpc" id="L721" title="2 of 6 branches missed.">        if (deleteTemporary &amp;&amp; tempDirectory != null &amp;&amp; tempDirectory.exists()) {</span>
-<span class="fc" id="L722">            LOGGER.debug(&quot;Deleting ALL temporary files from `{}`&quot;, tempDirectory.toString());</span>
-<span class="fc" id="L723">            FileUtils.delete(tempDirectory);</span>
-<span class="fc" id="L724">            tempDirectory = null;</span>
+<span class="pc bpc" id="L746" title="2 of 6 branches missed.">        if (deleteTemporary &amp;&amp; tempDirectory != null &amp;&amp; tempDirectory.exists()) {</span>
+<span class="fc" id="L747">            LOGGER.debug(&quot;Deleting ALL temporary files from `{}`&quot;, tempDirectory.toString());</span>
+<span class="fc" id="L748">            FileUtils.delete(tempDirectory);</span>
+<span class="fc" id="L749">            tempDirectory = null;</span>
         }
-<span class="fc" id="L726">    }</span>
+<span class="fc" id="L751">    }</span>
 
     /**
      * Check if a given key is considered to have a value with sensitive data.
@@ -733,10 +758,10 @@ public final class Settings {
      * otherwise &lt;code&gt;false&lt;/code&gt;
      */
     private boolean isKeyMasked(@NotNull String key) {
-<span class="pc bpc" id="L736" title="1 of 4 branches missed.">        if (maskedKeys == null || maskedKeys.isEmpty()) {</span>
-<span class="fc" id="L737">            initMaskedKeys();</span>
+<span class="pc bpc" id="L761" title="1 of 4 branches missed.">        if (maskedKeys == null || maskedKeys.isEmpty()) {</span>
+<span class="fc" id="L762">            initMaskedKeys();</span>
         }
-<span class="fc" id="L739">        return maskedKeys.stream().anyMatch(maskExp -&gt; maskExp.test(key));</span>
+<span class="fc" id="L764">        return maskedKeys.stream().anyMatch(maskExp -&gt; maskExp.test(key));</span>
     }
 
     /**
@@ -748,11 +773,11 @@ public final class Settings {
      * @return the printable value
      */
     protected String getPrintableValue(@NotNull String key, String value) {
-<span class="fc" id="L751">        String printableValue = null;</span>
-<span class="pc bpc" id="L752" title="1 of 2 branches missed.">        if (value != null) {</span>
-<span class="fc bfc" id="L753" title="All 2 branches covered.">            printableValue = isKeyMasked(key) ? &quot;********&quot; : value;</span>
+<span class="fc" id="L776">        String printableValue = null;</span>
+<span class="pc bpc" id="L777" title="1 of 2 branches missed.">        if (value != null) {</span>
+<span class="fc bfc" id="L778" title="All 2 branches covered.">            printableValue = isKeyMasked(key) ? &quot;********&quot; : value;</span>
         }
-<span class="fc" id="L755">        return printableValue;</span>
+<span class="fc" id="L780">        return printableValue;</span>
     }
 
     /**
@@ -762,16 +787,16 @@ public final class Settings {
      * the call to initialize.
      */
     protected void initMaskedKeys() {
-<span class="fc" id="L765">        final String[] masked = getArray(Settings.KEYS.MASKED_PROPERTIES);</span>
-<span class="pc bpc" id="L766" title="1 of 2 branches missed.">        if (masked == null) {</span>
-<span class="nc" id="L767">            maskedKeys = new ArrayList&lt;&gt;();</span>
+<span class="fc" id="L790">        final String[] masked = getArray(Settings.KEYS.MASKED_PROPERTIES);</span>
+<span class="pc bpc" id="L791" title="1 of 2 branches missed.">        if (masked == null) {</span>
+<span class="nc" id="L792">            maskedKeys = new ArrayList&lt;&gt;();</span>
         } else {
-<span class="fc" id="L769">            maskedKeys = Arrays.asList(masked)</span>
-<span class="fc" id="L770">                    .stream()</span>
-<span class="fc" id="L771">                    .map(v -&gt; Pattern.compile(v).asPredicate())</span>
-<span class="fc" id="L772">                    .collect(Collectors.toList());</span>
+<span class="fc" id="L794">            maskedKeys = Arrays.asList(masked)</span>
+<span class="fc" id="L795">                    .stream()</span>
+<span class="fc" id="L796">                    .map(v -&gt; Pattern.compile(v).asPredicate())</span>
+<span class="fc" id="L797">                    .collect(Collectors.toList());</span>
         }
-<span class="fc" id="L774">    }</span>
+<span class="fc" id="L799">    }</span>
 
     /**
      * Logs the properties. This will not log any properties that contain
@@ -781,24 +806,24 @@ public final class Settings {
      * @param properties the properties to log
      */
     private void logProperties(@NotNull final String header, @NotNull final Properties properties) {
-<span class="pc bpc" id="L784" title="1 of 2 branches missed.">        if (LOGGER.isDebugEnabled()) {</span>
-<span class="nc" id="L785">            initMaskedKeys();</span>
-<span class="nc" id="L786">            final StringWriter sw = new StringWriter();</span>
-<span class="nc" id="L787">            try (PrintWriter pw = new PrintWriter(sw)) {</span>
-<span class="nc" id="L788">                pw.format(&quot;%s:%n%n&quot;, header);</span>
-<span class="nc" id="L789">                final Enumeration&lt;?&gt; e = properties.propertyNames();</span>
-<span class="nc bnc" id="L790" title="All 2 branches missed.">                while (e.hasMoreElements()) {</span>
-<span class="nc" id="L791">                    final String key = (String) e.nextElement();</span>
-<span class="nc" id="L792">                    final String value = getPrintableValue(key, properties.getProperty(key));</span>
-<span class="nc bnc" id="L793" title="All 2 branches missed.">                    if (value != null) {</span>
-<span class="nc" id="L794">                        pw.format(&quot;%s='%s'%n&quot;, key, value);</span>
+<span class="pc bpc" id="L809" title="1 of 2 branches missed.">        if (LOGGER.isDebugEnabled()) {</span>
+<span class="nc" id="L810">            initMaskedKeys();</span>
+<span class="nc" id="L811">            final StringWriter sw = new StringWriter();</span>
+<span class="nc" id="L812">            try (PrintWriter pw = new PrintWriter(sw)) {</span>
+<span class="nc" id="L813">                pw.format(&quot;%s:%n%n&quot;, header);</span>
+<span class="nc" id="L814">                final Enumeration&lt;?&gt; e = properties.propertyNames();</span>
+<span class="nc bnc" id="L815" title="All 2 branches missed.">                while (e.hasMoreElements()) {</span>
+<span class="nc" id="L816">                    final String key = (String) e.nextElement();</span>
+<span class="nc" id="L817">                    final String value = getPrintableValue(key, properties.getProperty(key));</span>
+<span class="nc bnc" id="L818" title="All 2 branches missed.">                    if (value != null) {</span>
+<span class="nc" id="L819">                        pw.format(&quot;%s='%s'%n&quot;, key, value);</span>
                     }
-<span class="nc" id="L796">                }</span>
-<span class="nc" id="L797">                pw.flush();</span>
-<span class="nc" id="L798">                LOGGER.debug(sw.toString());</span>
+<span class="nc" id="L821">                }</span>
+<span class="nc" id="L822">                pw.flush();</span>
+<span class="nc" id="L823">                LOGGER.debug(sw.toString());</span>
             }
         }
-<span class="fc" id="L801">    }</span>
+<span class="fc" id="L826">    }</span>
 
     /**
      * Sets a property value.
@@ -807,9 +832,9 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setString(@NotNull final String key, @NotNull final String value) {
-<span class="fc" id="L810">        props.setProperty(key, value);</span>
-<span class="fc" id="L811">        LOGGER.debug(&quot;Setting: {}='{}'&quot;, key, getPrintableValue(key, value));</span>
-<span class="fc" id="L812">    }</span>
+<span class="fc" id="L835">        props.setProperty(key, value);</span>
+<span class="fc" id="L836">        LOGGER.debug(&quot;Setting: {}='{}'&quot;, key, getPrintableValue(key, value));</span>
+<span class="fc" id="L837">    }</span>
 
     /**
      * Sets a property value only if the value is not null.
@@ -818,10 +843,10 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setStringIfNotNull(@NotNull final String key, @Nullable final String value) {
-<span class="pc bpc" id="L821" title="1 of 2 branches missed.">        if (null != value) {</span>
-<span class="nc" id="L822">            setString(key, value);</span>
+<span class="pc bpc" id="L846" title="1 of 2 branches missed.">        if (null != value) {</span>
+<span class="nc" id="L847">            setString(key, value);</span>
         }
-<span class="fc" id="L824">    }</span>
+<span class="fc" id="L849">    }</span>
 
     /**
      * Sets a property value only if the value is not null and not empty.
@@ -830,10 +855,10 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setStringIfNotEmpty(@NotNull final String key, @Nullable final String value) {
-<span class="pc bpc" id="L833" title="2 of 4 branches missed.">        if (null != value &amp;&amp; !value.isEmpty()) {</span>
-<span class="nc" id="L834">            setString(key, value);</span>
+<span class="pc bpc" id="L858" title="2 of 4 branches missed.">        if (null != value &amp;&amp; !value.isEmpty()) {</span>
+<span class="nc" id="L859">            setString(key, value);</span>
         }
-<span class="fc" id="L836">    }</span>
+<span class="fc" id="L861">    }</span>
 
     /**
      * Sets a property value only if the array value is not null and not empty.
@@ -842,10 +867,14 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setArrayIfNotEmpty(@NotNull final String key, @Nullable final String[] value) {
-<span class="pc bpc" id="L845" title="1 of 4 branches missed.">        if (null != value &amp;&amp; value.length &gt; 0) {</span>
-<span class="nc" id="L846">            setString(key, new Gson().toJson(value));</span>
+<span class="pc bpc" id="L870" title="1 of 4 branches missed.">        if (null != value &amp;&amp; value.length &gt; 0) {</span>
+            try {
+<span class="nc" id="L872">                setString(key, objectMapper.writeValueAsString(value));</span>
+<span class="nc" id="L873">            } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L874">                throw new IllegalArgumentException();</span>
+<span class="nc" id="L875">            }</span>
         }
-<span class="fc" id="L848">    }</span>
+<span class="fc" id="L877">    }</span>
 
     /**
      * Sets a property value only if the array value is not null and not empty.
@@ -854,10 +883,14 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setArrayIfNotEmpty(@NotNull final String key, @Nullable final List&lt;String&gt; value) {
-<span class="pc bpc" id="L857" title="2 of 4 branches missed.">        if (null != value &amp;&amp; !value.isEmpty()) {</span>
-<span class="fc" id="L858">            setString(key, new Gson().toJson(value));</span>
+<span class="pc bpc" id="L886" title="2 of 4 branches missed.">        if (null != value &amp;&amp; !value.isEmpty()) {</span>
+            try {
+<span class="fc" id="L888">                setString(key, objectMapper.writeValueAsString(value));</span>
+<span class="nc" id="L889">            } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L890">                throw new IllegalArgumentException();</span>
+<span class="fc" id="L891">            }</span>
         }
-<span class="fc" id="L860">    }</span>
+<span class="fc" id="L893">    }</span>
 
     /**
      * Sets a property value.
@@ -866,40 +899,7 @@ public final class Settings {
      * @param value the value for the property
      */
     public void setBoolean(@NotNull final String key, boolean value) {
-<span class="nc" id="L869">        setString(key, Boolean.toString(value));</span>
-<span class="nc" id="L870">    }</span>
-
-    /**
-     * Sets a property value only if the value is not null.
-     *
-     * @param key the key for the property
-     * @param value the value for the property
-     */
-    public void setBooleanIfNotNull(@NotNull final String key, @Nullable final Boolean value) {
-<span class="nc bnc" id="L879" title="All 2 branches missed.">        if (null != value) {</span>
-<span class="nc" id="L880">            setBoolean(key, value);</span>
-        }
-<span class="nc" id="L882">    }</span>
-
-    /**
-     * Sets a float property value.
-     *
-     * @param key the key for the property
-     * @param value the value for the property
-     */
-    public void setFloat(@NotNull final String key, final float value) {
-<span class="nc" id="L891">        setString(key, Float.toString(value));</span>
-<span class="nc" id="L892">    }</span>
-
-    /**
-     * Sets a property value.
-     *
-     * @param key the key for the property
-     * @param value the value for the property
-     */
-    public void setInt(@NotNull final String key, final int value) {
-<span class="nc" id="L901">        props.setProperty(key, String.valueOf(value));</span>
-<span class="nc" id="L902">        LOGGER.debug(&quot;Setting: {}='{}'&quot;, key, value);</span>
+<span class="nc" id="L902">        setString(key, Boolean.toString(value));</span>
 <span class="nc" id="L903">    }</span>
 
     /**
@@ -908,11 +908,44 @@ public final class Settings {
      * @param key the key for the property
      * @param value the value for the property
      */
-    public void setIntIfNotNull(@NotNull final String key, @Nullable final Integer value) {
+    public void setBooleanIfNotNull(@NotNull final String key, @Nullable final Boolean value) {
 <span class="nc bnc" id="L912" title="All 2 branches missed.">        if (null != value) {</span>
-<span class="nc" id="L913">            setInt(key, value);</span>
+<span class="nc" id="L913">            setBoolean(key, value);</span>
         }
 <span class="nc" id="L915">    }</span>
+
+    /**
+     * Sets a float property value.
+     *
+     * @param key the key for the property
+     * @param value the value for the property
+     */
+    public void setFloat(@NotNull final String key, final float value) {
+<span class="nc" id="L924">        setString(key, Float.toString(value));</span>
+<span class="nc" id="L925">    }</span>
+
+    /**
+     * Sets a property value.
+     *
+     * @param key the key for the property
+     * @param value the value for the property
+     */
+    public void setInt(@NotNull final String key, final int value) {
+<span class="nc" id="L934">        props.setProperty(key, String.valueOf(value));</span>
+<span class="nc" id="L935">        LOGGER.debug(&quot;Setting: {}='{}'&quot;, key, value);</span>
+<span class="nc" id="L936">    }</span>
+
+    /**
+     * Sets a property value only if the value is not null.
+     *
+     * @param key the key for the property
+     * @param value the value for the property
+     */
+    public void setIntIfNotNull(@NotNull final String key, @Nullable final Integer value) {
+<span class="nc bnc" id="L945" title="All 2 branches missed.">        if (null != value) {</span>
+<span class="nc" id="L946">            setInt(key, value);</span>
+        }
+<span class="nc" id="L948">    }</span>
 
     /**
      * Merges a new properties file into the current properties. This method
@@ -928,10 +961,10 @@ public final class Settings {
      */
     @SuppressFBWarnings(justification = &quot;try with resource will clenaup the resources&quot;, value = {&quot;OBL_UNSATISFIED_OBLIGATION&quot;})
     public void mergeProperties(@NotNull final File filePath) throws FileNotFoundException, IOException {
-<span class="nc" id="L931">        try (FileInputStream fis = new FileInputStream(filePath)) {</span>
-<span class="nc" id="L932">            mergeProperties(fis);</span>
+<span class="nc" id="L964">        try (FileInputStream fis = new FileInputStream(filePath)) {</span>
+<span class="nc" id="L965">            mergeProperties(fis);</span>
         }
-<span class="nc" id="L934">    }</span>
+<span class="nc" id="L967">    }</span>
 
     /**
      * Merges a new properties file into the current properties. This method
@@ -947,10 +980,10 @@ public final class Settings {
      */
     @SuppressFBWarnings(justification = &quot;try with resource will clenaup the resources&quot;, value = {&quot;OBL_UNSATISFIED_OBLIGATION&quot;})
     public void mergeProperties(@NotNull final String filePath) throws FileNotFoundException, IOException {
-<span class="fc" id="L950">        try (FileInputStream fis = new FileInputStream(filePath)) {</span>
-<span class="fc" id="L951">            mergeProperties(fis);</span>
+<span class="fc" id="L983">        try (FileInputStream fis = new FileInputStream(filePath)) {</span>
+<span class="fc" id="L984">            mergeProperties(fis);</span>
         }
-<span class="fc" id="L953">    }</span>
+<span class="fc" id="L986">    }</span>
 
     /**
      * Merges a new properties file into the current properties. This method
@@ -963,9 +996,9 @@ public final class Settings {
      * loading/merging the properties
      */
     public void mergeProperties(@NotNull final InputStream stream) throws IOException {
-<span class="fc" id="L966">        props.load(stream);</span>
-<span class="fc" id="L967">        logProperties(&quot;Properties updated via merge&quot;, props);</span>
-<span class="fc" id="L968">    }</span>
+<span class="fc" id="L999">        props.load(stream);</span>
+<span class="fc" id="L1000">        logProperties(&quot;Properties updated via merge&quot;, props);</span>
+<span class="fc" id="L1001">    }</span>
 
     /**
      * Returns a value from the properties file as a File object. If the value
@@ -978,11 +1011,11 @@ public final class Settings {
      */
     @Nullable
     public File getFile(@NotNull final String key) {
-<span class="nc" id="L981">        final String file = getString(key);</span>
-<span class="nc bnc" id="L982" title="All 2 branches missed.">        if (file == null) {</span>
-<span class="nc" id="L983">            return null;</span>
+<span class="nc" id="L1014">        final String file = getString(key);</span>
+<span class="nc bnc" id="L1015" title="All 2 branches missed.">        if (file == null) {</span>
+<span class="nc" id="L1016">            return null;</span>
         }
-<span class="nc" id="L985">        return new File(file);</span>
+<span class="nc" id="L1018">        return new File(file);</span>
     }
 
     /**
@@ -1000,20 +1033,20 @@ public final class Settings {
      * @return the property from the properties file converted to a File object
      */
     protected File getDataFile(@NotNull final String key) {
-<span class="fc" id="L1003">        final String file = getString(key);</span>
-<span class="fc" id="L1004">        LOGGER.debug(&quot;Settings.getDataFile() - file: '{}'&quot;, file);</span>
-<span class="pc bpc" id="L1005" title="1 of 2 branches missed.">        if (file == null) {</span>
-<span class="nc" id="L1006">            return null;</span>
+<span class="fc" id="L1036">        final String file = getString(key);</span>
+<span class="fc" id="L1037">        LOGGER.debug(&quot;Settings.getDataFile() - file: '{}'&quot;, file);</span>
+<span class="pc bpc" id="L1038" title="1 of 2 branches missed.">        if (file == null) {</span>
+<span class="nc" id="L1039">            return null;</span>
         }
-<span class="pc bpc" id="L1008" title="1 of 2 branches missed.">        if (file.startsWith(&quot;[JAR]&quot;)) {</span>
-<span class="nc" id="L1009">            LOGGER.debug(&quot;Settings.getDataFile() - transforming filename&quot;);</span>
-<span class="nc" id="L1010">            final File jarPath = getJarPath();</span>
-<span class="nc" id="L1011">            LOGGER.debug(&quot;Settings.getDataFile() - jar file: '{}'&quot;, jarPath.toString());</span>
-<span class="nc" id="L1012">            final File retVal = new File(jarPath, file.substring(6));</span>
-<span class="nc" id="L1013">            LOGGER.debug(&quot;Settings.getDataFile() - returning: '{}'&quot;, retVal.toString());</span>
-<span class="nc" id="L1014">            return retVal;</span>
+<span class="pc bpc" id="L1041" title="1 of 2 branches missed.">        if (file.startsWith(&quot;[JAR]&quot;)) {</span>
+<span class="nc" id="L1042">            LOGGER.debug(&quot;Settings.getDataFile() - transforming filename&quot;);</span>
+<span class="nc" id="L1043">            final File jarPath = getJarPath();</span>
+<span class="nc" id="L1044">            LOGGER.debug(&quot;Settings.getDataFile() - jar file: '{}'&quot;, jarPath.toString());</span>
+<span class="nc" id="L1045">            final File retVal = new File(jarPath, file.substring(6));</span>
+<span class="nc" id="L1046">            LOGGER.debug(&quot;Settings.getDataFile() - returning: '{}'&quot;, retVal.toString());</span>
+<span class="nc" id="L1047">            return retVal;</span>
         }
-<span class="fc" id="L1016">        return new File(file);</span>
+<span class="fc" id="L1049">        return new File(file);</span>
     }
 
     /**
@@ -1023,23 +1056,23 @@ public final class Settings {
      * @return a File object
      */
     private File getJarPath() {
-<span class="nc" id="L1026">        String decodedPath = &quot;.&quot;;</span>
-<span class="nc" id="L1027">        String jarPath = &quot;&quot;;</span>
-<span class="nc" id="L1028">        final ProtectionDomain domain = Settings.class.getProtectionDomain();</span>
-<span class="nc bnc" id="L1029" title="All 6 branches missed.">        if (domain != null &amp;&amp; domain.getCodeSource() != null &amp;&amp; domain.getCodeSource().getLocation() != null) {</span>
-<span class="nc" id="L1030">            jarPath = Settings.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
+<span class="nc" id="L1059">        String decodedPath = &quot;.&quot;;</span>
+<span class="nc" id="L1060">        String jarPath = &quot;&quot;;</span>
+<span class="nc" id="L1061">        final ProtectionDomain domain = Settings.class.getProtectionDomain();</span>
+<span class="nc bnc" id="L1062" title="All 6 branches missed.">        if (domain != null &amp;&amp; domain.getCodeSource() != null &amp;&amp; domain.getCodeSource().getLocation() != null) {</span>
+<span class="nc" id="L1063">            jarPath = Settings.class.getProtectionDomain().getCodeSource().getLocation().getPath();</span>
         }
         try {
-<span class="nc" id="L1033">            decodedPath = URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name());</span>
-<span class="nc" id="L1034">        } catch (UnsupportedEncodingException ex) {</span>
-<span class="nc" id="L1035">            LOGGER.trace(&quot;&quot;, ex);</span>
-<span class="nc" id="L1036">        }</span>
+<span class="nc" id="L1066">            decodedPath = URLDecoder.decode(jarPath, StandardCharsets.UTF_8.name());</span>
+<span class="nc" id="L1067">        } catch (UnsupportedEncodingException ex) {</span>
+<span class="nc" id="L1068">            LOGGER.trace(&quot;&quot;, ex);</span>
+<span class="nc" id="L1069">        }</span>
 
-<span class="nc" id="L1038">        final File path = new File(decodedPath);</span>
-<span class="nc bnc" id="L1039" title="All 2 branches missed.">        if (path.getName().toLowerCase().endsWith(&quot;.jar&quot;)) {</span>
-<span class="nc" id="L1040">            return path.getParentFile();</span>
+<span class="nc" id="L1071">        final File path = new File(decodedPath);</span>
+<span class="nc bnc" id="L1072" title="All 2 branches missed.">        if (path.getName().toLowerCase().endsWith(&quot;.jar&quot;)) {</span>
+<span class="nc" id="L1073">            return path.getParentFile();</span>
         } else {
-<span class="nc" id="L1042">            return new File(&quot;.&quot;);</span>
+<span class="nc" id="L1075">            return new File(&quot;.&quot;);</span>
         }
     }
 
@@ -1054,7 +1087,7 @@ public final class Settings {
      * @return the property from the properties file
      */
     public String getString(@NotNull final String key, @Nullable final String defaultValue) {
-<span class="fc" id="L1057">        return System.getProperty(key, props.getProperty(key, defaultValue));</span>
+<span class="fc" id="L1090">        return System.getProperty(key, props.getProperty(key, defaultValue));</span>
     }
 
     /**
@@ -1064,11 +1097,11 @@ public final class Settings {
      * @throws java.io.IOException if any.
      */
     public synchronized File getTempDirectory() throws IOException {
-<span class="pc bpc" id="L1067" title="1 of 2 branches missed.">        if (tempDirectory == null) {</span>
-<span class="fc" id="L1068">            final File baseTemp = new File(getString(Settings.KEYS.TEMP_DIRECTORY, System.getProperty(&quot;java.io.tmpdir&quot;)));</span>
-<span class="fc" id="L1069">            tempDirectory = FileUtils.createTempDirectory(baseTemp);</span>
+<span class="pc bpc" id="L1100" title="1 of 2 branches missed.">        if (tempDirectory == null) {</span>
+<span class="fc" id="L1101">            final File baseTemp = new File(getString(Settings.KEYS.TEMP_DIRECTORY, System.getProperty(&quot;java.io.tmpdir&quot;)));</span>
+<span class="fc" id="L1102">            tempDirectory = FileUtils.createTempDirectory(baseTemp);</span>
         }
-<span class="fc" id="L1071">        return tempDirectory;</span>
+<span class="fc" id="L1104">        return tempDirectory;</span>
     }
 
     /**
@@ -1081,7 +1114,7 @@ public final class Settings {
      * @return the property from the properties file
      */
     public String getString(@NotNull final String key) {
-<span class="fc" id="L1084">        return System.getProperty(key, props.getProperty(key));</span>
+<span class="fc" id="L1117">        return System.getProperty(key, props.getProperty(key));</span>
     }
 
     /**
@@ -1094,15 +1127,19 @@ public final class Settings {
      * @return the list or {@code null} if the key wasn't present.
      */
     public String[] getArray(@NotNull final String key) {
-<span class="fc" id="L1097">        final String string = getString(key);</span>
-<span class="fc bfc" id="L1098" title="All 2 branches covered.">        if (string != null) {</span>
-<span class="pc bpc" id="L1099" title="1 of 4 branches missed.">            if (string.charAt(0) == '{' || string.charAt(0) == '[') {</span>
-<span class="fc" id="L1100">                return new Gson().fromJson(string, String[].class);</span>
+<span class="fc" id="L1130">        final String string = getString(key);</span>
+<span class="fc bfc" id="L1131" title="All 2 branches covered.">        if (string != null) {</span>
+<span class="pc bpc" id="L1132" title="1 of 4 branches missed.">            if (string.charAt(0) == '{' || string.charAt(0) == '[') {</span>
+                try {
+<span class="fc" id="L1134">                    return objectMapper.readValue(string, String[].class);</span>
+<span class="nc" id="L1135">                } catch (JsonProcessingException e) {</span>
+<span class="nc" id="L1136">                    throw new IllegalStateException(&quot;Unable to read value '&quot; + string + &quot;' as an array&quot;);</span>
+                }
             } else {
-<span class="fc" id="L1102">                return string.split(ARRAY_SEP);</span>
+<span class="fc" id="L1139">                return string.split(ARRAY_SEP);</span>
             }
         }
-<span class="fc" id="L1105">        return null;</span>
+<span class="fc" id="L1142">        return null;</span>
     }
 
     /**
@@ -1112,8 +1149,8 @@ public final class Settings {
      * @param key the property key to remove
      */
     public void removeProperty(@NotNull final String key) {
-<span class="fc" id="L1115">        props.remove(key);</span>
-<span class="fc" id="L1116">    }</span>
+<span class="fc" id="L1152">        props.remove(key);</span>
+<span class="fc" id="L1153">    }</span>
 
     /**
      * Returns an int value from the properties file. If the value was specified
@@ -1128,9 +1165,9 @@ public final class Settings {
      */
     public int getInt(@NotNull final String key) throws InvalidSettingException {
         try {
-<span class="fc" id="L1131">            return Integer.parseInt(getString(key));</span>
-<span class="nc" id="L1132">        } catch (NumberFormatException ex) {</span>
-<span class="nc" id="L1133">            throw new InvalidSettingException(&quot;Could not convert property '&quot; + key + &quot;' to an int.&quot;, ex);</span>
+<span class="fc" id="L1168">            return Integer.parseInt(getString(key));</span>
+<span class="nc" id="L1169">        } catch (NumberFormatException ex) {</span>
+<span class="nc" id="L1170">            throw new InvalidSettingException(&quot;Could not convert property '&quot; + key + &quot;' to an int.&quot;, ex);</span>
         }
     }
 
@@ -1148,15 +1185,15 @@ public final class Settings {
     public int getInt(@NotNull final String key, int defaultValue) {
         int value;
         try {
-<span class="nc" id="L1151">            value = Integer.parseInt(getString(key));</span>
-<span class="fc" id="L1152">        } catch (NumberFormatException ex) {</span>
-<span class="fc bfc" id="L1153" title="All 2 branches covered.">            if (!getString(key, &quot;&quot;).isEmpty()) {</span>
-<span class="fc" id="L1154">                LOGGER.debug(&quot;Could not convert property '{}={}' to an int; using {} instead.&quot;,</span>
-<span class="fc" id="L1155">                        key, getPrintableValue(key, getString(key)), defaultValue);</span>
+<span class="nc" id="L1188">            value = Integer.parseInt(getString(key));</span>
+<span class="fc" id="L1189">        } catch (NumberFormatException ex) {</span>
+<span class="fc bfc" id="L1190" title="All 2 branches covered.">            if (!getString(key, &quot;&quot;).isEmpty()) {</span>
+<span class="fc" id="L1191">                LOGGER.debug(&quot;Could not convert property '{}={}' to an int; using {} instead.&quot;,</span>
+<span class="fc" id="L1192">                        key, getPrintableValue(key, getString(key)), defaultValue);</span>
             }
-<span class="fc" id="L1157">            value = defaultValue;</span>
-<span class="nc" id="L1158">        }</span>
-<span class="fc" id="L1159">        return value;</span>
+<span class="fc" id="L1194">            value = defaultValue;</span>
+<span class="nc" id="L1195">        }</span>
+<span class="fc" id="L1196">        return value;</span>
     }
 
     /**
@@ -1172,9 +1209,9 @@ public final class Settings {
      */
     public long getLong(@NotNull final String key) throws InvalidSettingException {
         try {
-<span class="fc" id="L1175">            return Long.parseLong(getString(key));</span>
-<span class="nc" id="L1176">        } catch (NumberFormatException ex) {</span>
-<span class="nc" id="L1177">            throw new InvalidSettingException(&quot;Could not convert property '&quot; + key + &quot;' to a long.&quot;, ex);</span>
+<span class="fc" id="L1212">            return Long.parseLong(getString(key));</span>
+<span class="nc" id="L1213">        } catch (NumberFormatException ex) {</span>
+<span class="nc" id="L1214">            throw new InvalidSettingException(&quot;Could not convert property '&quot; + key + &quot;' to a long.&quot;, ex);</span>
         }
     }
 
@@ -1191,7 +1228,7 @@ public final class Settings {
      * if there is an error retrieving the setting
      */
     public boolean getBoolean(@NotNull final String key) throws InvalidSettingException {
-<span class="fc" id="L1194">        return Boolean.parseBoolean(getString(key));</span>
+<span class="fc" id="L1231">        return Boolean.parseBoolean(getString(key));</span>
     }
 
     /**
@@ -1207,7 +1244,7 @@ public final class Settings {
      * @return the property from the properties file
      */
     public boolean getBoolean(@NotNull final String key, boolean defaultValue) {
-<span class="fc" id="L1210">        return Boolean.parseBoolean(getString(key, Boolean.toString(defaultValue)));</span>
+<span class="fc" id="L1247">        return Boolean.parseBoolean(getString(key, Boolean.toString(defaultValue)));</span>
     }
 
     /**
@@ -1223,13 +1260,13 @@ public final class Settings {
      * @return the property from the properties file
      */
     public float getFloat(@NotNull final String key, float defaultValue) {
-<span class="nc" id="L1226">        float retValue = defaultValue;</span>
+<span class="nc" id="L1263">        float retValue = defaultValue;</span>
         try {
-<span class="nc" id="L1228">            retValue = Float.parseFloat(getString(key));</span>
-<span class="nc" id="L1229">        } catch (Throwable ex) {</span>
-<span class="nc" id="L1230">            LOGGER.trace(&quot;ignore&quot;, ex);</span>
-<span class="nc" id="L1231">        }</span>
-<span class="nc" id="L1232">        return retValue;</span>
+<span class="nc" id="L1265">            retValue = Float.parseFloat(getString(key));</span>
+<span class="nc" id="L1266">        } catch (Throwable ex) {</span>
+<span class="nc" id="L1267">            LOGGER.trace(&quot;ignore&quot;, ex);</span>
+<span class="nc" id="L1268">        }</span>
+<span class="nc" id="L1269">        return retValue;</span>
     }
 
     /**
@@ -1247,33 +1284,33 @@ public final class Settings {
      */
     public String getConnectionString(String connectionStringKey, String dbFileNameKey)
             throws IOException, InvalidSettingException {
-<span class="fc" id="L1250">        final String connStr = getString(connectionStringKey);</span>
-<span class="fc bfc" id="L1251" title="All 2 branches covered.">        if (connStr == null) {</span>
-<span class="fc" id="L1252">            final String msg = String.format(&quot;Invalid properties file; %s is missing.&quot;, connectionStringKey);</span>
-<span class="fc" id="L1253">            throw new InvalidSettingException(msg);</span>
+<span class="fc" id="L1287">        final String connStr = getString(connectionStringKey);</span>
+<span class="fc bfc" id="L1288" title="All 2 branches covered.">        if (connStr == null) {</span>
+<span class="fc" id="L1289">            final String msg = String.format(&quot;Invalid properties file; %s is missing.&quot;, connectionStringKey);</span>
+<span class="fc" id="L1290">            throw new InvalidSettingException(msg);</span>
         }
-<span class="pc bpc" id="L1255" title="1 of 2 branches missed.">        if (connStr.contains(&quot;%s&quot;)) {</span>
-<span class="fc" id="L1256">            final File directory = getH2DataDirectory();</span>
-<span class="fc" id="L1257">            LOGGER.debug(&quot;Data directory: {}&quot;, directory);</span>
-<span class="fc" id="L1258">            String fileName = null;</span>
-<span class="pc bpc" id="L1259" title="1 of 2 branches missed.">            if (dbFileNameKey != null) {</span>
-<span class="fc" id="L1260">                fileName = getString(dbFileNameKey);</span>
+<span class="pc bpc" id="L1292" title="1 of 2 branches missed.">        if (connStr.contains(&quot;%s&quot;)) {</span>
+<span class="fc" id="L1293">            final File directory = getH2DataDirectory();</span>
+<span class="fc" id="L1294">            LOGGER.debug(&quot;Data directory: {}&quot;, directory);</span>
+<span class="fc" id="L1295">            String fileName = null;</span>
+<span class="pc bpc" id="L1296" title="1 of 2 branches missed.">            if (dbFileNameKey != null) {</span>
+<span class="fc" id="L1297">                fileName = getString(dbFileNameKey);</span>
             }
-<span class="pc bpc" id="L1262" title="1 of 2 branches missed.">            if (fileName == null) {</span>
-<span class="nc" id="L1263">                final String msg = String.format(&quot;Invalid properties file to get a file based connection string; '%s' must be defined.&quot;,</span>
+<span class="pc bpc" id="L1299" title="1 of 2 branches missed.">            if (fileName == null) {</span>
+<span class="nc" id="L1300">                final String msg = String.format(&quot;Invalid properties file to get a file based connection string; '%s' must be defined.&quot;,</span>
                         dbFileNameKey);
-<span class="nc" id="L1265">                throw new InvalidSettingException(msg);</span>
+<span class="nc" id="L1302">                throw new InvalidSettingException(msg);</span>
             }
-<span class="pc bpc" id="L1267" title="2 of 4 branches missed.">            if (connStr.startsWith(&quot;jdbc:h2:file:&quot;) &amp;&amp; fileName.endsWith(&quot;.mv.db&quot;)) {</span>
-<span class="fc" id="L1268">                fileName = fileName.substring(0, fileName.length() - 6);</span>
+<span class="pc bpc" id="L1304" title="2 of 4 branches missed.">            if (connStr.startsWith(&quot;jdbc:h2:file:&quot;) &amp;&amp; fileName.endsWith(&quot;.mv.db&quot;)) {</span>
+<span class="fc" id="L1305">                fileName = fileName.substring(0, fileName.length() - 6);</span>
             }
             // yes, for H2 this path won't actually exists - but this is sufficient to get the value needed
-<span class="fc" id="L1271">            final File dbFile = new File(directory, fileName);</span>
-<span class="fc" id="L1272">            final String cString = String.format(connStr, dbFile.getCanonicalPath());</span>
-<span class="fc" id="L1273">            LOGGER.debug(&quot;Connection String: '{}'&quot;, cString);</span>
-<span class="fc" id="L1274">            return cString;</span>
+<span class="fc" id="L1308">            final File dbFile = new File(directory, fileName);</span>
+<span class="fc" id="L1309">            final String cString = String.format(connStr, dbFile.getCanonicalPath());</span>
+<span class="fc" id="L1310">            LOGGER.debug(&quot;Connection String: '{}'&quot;, cString);</span>
+<span class="fc" id="L1311">            return cString;</span>
         }
-<span class="nc" id="L1276">        return connStr;</span>
+<span class="nc" id="L1313">        return connStr;</span>
     }
 
     /**
@@ -1285,12 +1322,12 @@ public final class Settings {
      * course...
      */
     public File getDataDirectory() throws IOException {
-<span class="nc" id="L1288">        final File path = getDataFile(Settings.KEYS.DATA_DIRECTORY);</span>
-<span class="nc bnc" id="L1289" title="All 6 branches missed.">        if (path != null &amp;&amp; (path.exists() || path.mkdirs())) {</span>
-<span class="nc" id="L1290">            return path;</span>
+<span class="nc" id="L1325">        final File path = getDataFile(Settings.KEYS.DATA_DIRECTORY);</span>
+<span class="nc bnc" id="L1326" title="All 6 branches missed.">        if (path != null &amp;&amp; (path.exists() || path.mkdirs())) {</span>
+<span class="nc" id="L1327">            return path;</span>
         }
-<span class="nc" id="L1292">        throw new IOException(String.format(&quot;Unable to create the data directory '%s'&quot;,</span>
-<span class="nc bnc" id="L1293" title="All 2 branches missed.">                (path == null) ? &quot;unknown&quot; : path.getAbsolutePath()));</span>
+<span class="nc bnc" id="L1329" title="All 2 branches missed.">        throw new IOException(String.format(&quot;Unable to create the data directory '%s'&quot;,</span>
+<span class="nc" id="L1330">                (path == null) ? &quot;unknown&quot; : path.getAbsolutePath()));</span>
     }
 
     /**
@@ -1302,18 +1339,18 @@ public final class Settings {
      * course...
      */
     public File getH2DataDirectory() throws IOException {
-<span class="fc" id="L1305">        final String h2Test = getString(Settings.KEYS.H2_DATA_DIRECTORY);</span>
+<span class="fc" id="L1342">        final String h2Test = getString(Settings.KEYS.H2_DATA_DIRECTORY);</span>
         final File path;
-<span class="pc bpc" id="L1307" title="3 of 4 branches missed.">        if (h2Test != null &amp;&amp; !h2Test.isEmpty()) {</span>
-<span class="nc" id="L1308">            path = getDataFile(Settings.KEYS.H2_DATA_DIRECTORY);</span>
+<span class="pc bpc" id="L1344" title="3 of 4 branches missed.">        if (h2Test != null &amp;&amp; !h2Test.isEmpty()) {</span>
+<span class="nc" id="L1345">            path = getDataFile(Settings.KEYS.H2_DATA_DIRECTORY);</span>
         } else {
-<span class="fc" id="L1310">            path = getDataFile(Settings.KEYS.DATA_DIRECTORY);</span>
+<span class="fc" id="L1347">            path = getDataFile(Settings.KEYS.DATA_DIRECTORY);</span>
         }
-<span class="pc bpc" id="L1312" title="3 of 6 branches missed.">        if (path != null &amp;&amp; (path.exists() || path.mkdirs())) {</span>
-<span class="fc" id="L1313">            return path;</span>
+<span class="pc bpc" id="L1349" title="3 of 6 branches missed.">        if (path != null &amp;&amp; (path.exists() || path.mkdirs())) {</span>
+<span class="fc" id="L1350">            return path;</span>
         }
-<span class="nc" id="L1315">        throw new IOException(String.format(&quot;Unable to create the h2 data directory '%s'&quot;,</span>
-<span class="nc bnc" id="L1316" title="All 2 branches missed.">                (path == null) ? &quot;unknown&quot; : path.getAbsolutePath()));</span>
+<span class="nc bnc" id="L1352" title="All 2 branches missed.">        throw new IOException(String.format(&quot;Unable to create the h2 data directory '%s'&quot;,</span>
+<span class="nc" id="L1353">                (path == null) ? &quot;unknown&quot; : path.getAbsolutePath()));</span>
     }
 
     /**
@@ -1325,13 +1362,13 @@ public final class Settings {
      * @throws java.io.IOException if any.
      */
     public File getTempFile(@NotNull final String prefix, @NotNull final String extension) throws IOException {
-<span class="nc" id="L1328">        final File dir = getTempDirectory();</span>
-<span class="nc" id="L1329">        final String tempFileName = String.format(&quot;%s%s.%s&quot;, prefix, UUID.randomUUID().toString(), extension);</span>
-<span class="nc" id="L1330">        final File tempFile = new File(dir, tempFileName);</span>
-<span class="nc bnc" id="L1331" title="All 2 branches missed.">        if (tempFile.exists()) {</span>
-<span class="nc" id="L1332">            return getTempFile(prefix, extension);</span>
+<span class="nc" id="L1365">        final File dir = getTempDirectory();</span>
+<span class="nc" id="L1366">        final String tempFileName = String.format(&quot;%s%s.%s&quot;, prefix, UUID.randomUUID().toString(), extension);</span>
+<span class="nc" id="L1367">        final File tempFile = new File(dir, tempFileName);</span>
+<span class="nc bnc" id="L1368" title="All 2 branches missed.">        if (tempFile.exists()) {</span>
+<span class="nc" id="L1369">            return getTempFile(prefix, extension);</span>
         }
-<span class="nc" id="L1334">        return tempFile;</span>
+<span class="nc" id="L1371">        return tempFile;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

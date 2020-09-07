@@ -67,7 +67,7 @@ import org.slf4j.LoggerFactory;
     @Override
     public void run() {
 <span class="nc bnc" id="L69" title="All 2 branches missed.">        if (lock != null) {</span>
-<span class="nc" id="L70">            lock.release();</span>
+<span class="nc" id="L70">            lock.close();</span>
 <span class="nc" id="L71">            lock = null;</span>
         }
 <span class="nc" id="L73">    }</span>

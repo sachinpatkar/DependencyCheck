@@ -298,7 +298,7 @@
 <a class="jxr_linenumber" name="L290" href="#L290">290</a> <em class="jxr_javadoccomment">     * @return the unmodifiable set of evidence</em>
 <a class="jxr_linenumber" name="L291" href="#L291">291</a> <em class="jxr_javadoccomment">     */</em>
 <a class="jxr_linenumber" name="L292" href="#L292">292</a>     <strong class="jxr_keyword">public</strong> <strong class="jxr_keyword">synchronized</strong> Set&lt;Evidence&gt; getEvidence() {
-<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">final</strong> Set e = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(vendors);
+<a class="jxr_linenumber" name="L293" href="#L293">293</a>         <strong class="jxr_keyword">final</strong> Set&lt;Evidence&gt; e = <strong class="jxr_keyword">new</strong> HashSet&lt;&gt;(vendors);
 <a class="jxr_linenumber" name="L294" href="#L294">294</a>         e.addAll(products);
 <a class="jxr_linenumber" name="L295" href="#L295">295</a>         e.addAll(versions);
 <a class="jxr_linenumber" name="L296" href="#L296">296</a>         <strong class="jxr_keyword">return</strong> Collections.unmodifiableSet(e);

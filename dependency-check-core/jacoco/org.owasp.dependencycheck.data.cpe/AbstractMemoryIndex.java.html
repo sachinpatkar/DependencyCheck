@@ -278,13 +278,21 @@ import org.slf4j.LoggerFactory;
 <span class="nc" id="L278">        } catch (BooleanQuery.TooManyClauses ex) {</span>
 <span class="nc" id="L279">            BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);</span>
 <span class="nc" id="L280">            query = queryParser.parse(searchString);</span>
-<span class="fc" id="L281">        }</span>
+<span class="nc" id="L281">        } catch (ParseException ex) {</span>
+<span class="nc bnc" id="L282" title="All 4 branches missed.">            if (ex.getMessage() != null &amp;&amp; ex.getMessage().contains(&quot;too many boolean clauses&quot;)) {</span>
+<span class="nc" id="L283">                BooleanQuery.setMaxClauseCount(Integer.MAX_VALUE);</span>
+<span class="nc" id="L284">                query = queryParser.parse(searchString);</span>
+            } else {
+<span class="nc" id="L286">                LOGGER.debug(&quot;Parse Excepction&quot;, ex);</span>
+<span class="nc" id="L287">                throw ex;</span>
+            }
+<span class="pc" id="L289">        }</span>
         try {
-<span class="fc" id="L283">            resetAnalyzers();</span>
-<span class="nc" id="L284">        } catch (IOException ex) {</span>
-<span class="nc" id="L285">            throw new IndexException(&quot;Unable to reset the analyzer after parsing&quot;, ex);</span>
-<span class="fc" id="L286">        }</span>
-<span class="fc" id="L287">        return query;</span>
+<span class="fc" id="L291">            resetAnalyzers();</span>
+<span class="nc" id="L292">        } catch (IOException ex) {</span>
+<span class="nc" id="L293">            throw new IndexException(&quot;Unable to reset the analyzer after parsing&quot;, ex);</span>
+<span class="fc" id="L294">        }</span>
+<span class="fc" id="L295">        return query;</span>
     }
 
     /**
@@ -298,7 +306,7 @@ import org.slf4j.LoggerFactory;
      */
     @Override
     public synchronized TopDocs search(Query query, int maxQueryResults) throws CorruptIndexException, IOException {
-<span class="fc" id="L301">        return indexSearcher.search(query, maxQueryResults);</span>
+<span class="fc" id="L309">        return indexSearcher.search(query, maxQueryResults);</span>
     }
 
     /**
@@ -310,7 +318,7 @@ import org.slf4j.LoggerFactory;
      */
     @Override
     public synchronized Document getDocument(int documentId) throws IOException {
-<span class="fc" id="L313">        return indexSearcher.doc(documentId);</span>
+<span class="fc" id="L321">        return indexSearcher.doc(documentId);</span>
     }
 
     /**
@@ -319,10 +327,10 @@ import org.slf4j.LoggerFactory;
      * @return the number of CPE entries stored in the index
      */
     public synchronized int numDocs() {
-<span class="pc bpc" id="L322" title="1 of 2 branches missed.">        if (indexReader == null) {</span>
-<span class="nc" id="L323">            return -1;</span>
+<span class="pc bpc" id="L330" title="1 of 2 branches missed.">        if (indexReader == null) {</span>
+<span class="nc" id="L331">            return -1;</span>
         }
-<span class="fc" id="L325">        return indexReader.numDocs();</span>
+<span class="fc" id="L333">        return indexReader.numDocs();</span>
     }
 
     /**
@@ -334,7 +342,7 @@ import org.slf4j.LoggerFactory;
      * @throws IOException thrown if there is an index error
      */
     public synchronized String explain(Query query, int doc) throws IOException {
-<span class="nc" id="L337">        return indexSearcher.explain(query, doc).toString();</span>
+<span class="nc" id="L345">        return indexSearcher.explain(query, doc).toString();</span>
     }
 
     /**
@@ -343,8 +351,8 @@ import org.slf4j.LoggerFactory;
      * @throws IOException thrown if there is an index error
      */
     protected synchronized void resetAnalyzers() throws IOException {
-<span class="fc" id="L346">        productFieldAnalyzer.reset();</span>
-<span class="fc" id="L347">        vendorFieldAnalyzer.reset();</span>
-<span class="fc" id="L348">    }</span>
+<span class="fc" id="L354">        productFieldAnalyzer.reset();</span>
+<span class="fc" id="L355">        vendorFieldAnalyzer.reset();</span>
+<span class="fc" id="L356">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

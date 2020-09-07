@@ -112,15 +112,15 @@ import org.slf4j.LoggerFactory;
     public synchronized boolean update(Engine engine) throws UpdateException {
 <span class="fc" id="L113">        this.settings = engine.getSettings();</span>
 <span class="fc" id="L114">        this.cveDb = engine.getDatabase();</span>
-<span class="pc bpc" id="L115" title="1 of 2 branches missed.">        if (isUpdateConfiguredFalse()) {</span>
-<span class="nc" id="L116">            return false;</span>
+<span class="fc bfc" id="L115" title="All 2 branches covered.">        if (isUpdateConfiguredFalse()) {</span>
+<span class="fc" id="L116">            return false;</span>
         }
 <span class="fc" id="L118">        boolean updatesMade = false;</span>
         try {
 <span class="fc" id="L120">            dbProperties = cveDb.getDatabaseProperties();</span>
 <span class="pc bpc" id="L121" title="1 of 2 branches missed.">            if (checkUpdate()) {</span>
 <span class="fc" id="L122">                final List&lt;NvdCveInfo&gt; updateable = getUpdatesNeeded();</span>
-<span class="fc bfc" id="L123" title="All 2 branches covered.">                if (!updateable.isEmpty()) {</span>
+<span class="pc bpc" id="L123" title="1 of 2 branches missed.">                if (!updateable.isEmpty()) {</span>
 <span class="fc" id="L124">                    initializeExecutorServices();</span>
 <span class="fc" id="L125">                    performUpdate(updateable);</span>
 <span class="fc" id="L126">                    updatesMade = true;</span>
@@ -161,7 +161,7 @@ import org.slf4j.LoggerFactory;
 <span class="nc" id="L161">        } catch (InvalidSettingException ex) {</span>
 <span class="nc" id="L162">            LOGGER.debug(&quot;Invalid setting for auto-update; using true.&quot;);</span>
 <span class="fc" id="L163">        }</span>
-<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        return !autoUpdate;</span>
+<span class="fc bfc" id="L164" title="All 2 branches covered.">        return !autoUpdate;</span>
     }
 
     /**
@@ -186,10 +186,10 @@ import org.slf4j.LoggerFactory;
      * Shutdown and cleanup of resources used by the executor services.
      */
     private void shutdownExecutorServices() {
-<span class="fc bfc" id="L189" title="All 2 branches covered.">        if (processingExecutorService != null) {</span>
+<span class="pc bpc" id="L189" title="1 of 2 branches missed.">        if (processingExecutorService != null) {</span>
 <span class="fc" id="L190">            processingExecutorService.shutdownNow();</span>
         }
-<span class="fc bfc" id="L192" title="All 2 branches covered.">        if (downloadExecutorService != null) {</span>
+<span class="pc bpc" id="L192" title="1 of 2 branches missed.">        if (downloadExecutorService != null) {</span>
 <span class="fc" id="L193">            downloadExecutorService.shutdownNow();</span>
         }
 <span class="fc" id="L195">    }</span>
@@ -209,7 +209,7 @@ import org.slf4j.LoggerFactory;
 <span class="fc" id="L209">        boolean proceed = true;</span>
         // If the valid setting has not been specified, then we proceed to check...
 <span class="fc" id="L211">        final int validForHours = settings.getInt(Settings.KEYS.CVE_CHECK_VALID_FOR_HOURS, 0);</span>
-<span class="pc bpc" id="L212" title="1 of 4 branches missed.">        if (dataExists() &amp;&amp; 0 &lt; validForHours) {</span>
+<span class="pc bpc" id="L212" title="3 of 4 branches missed.">        if (dataExists() &amp;&amp; 0 &lt; validForHours) {</span>
             // ms Valid = valid (hours) x 60 min/hour x 60 sec/min x 1000 ms/sec
 <span class="nc" id="L214">            final long validForSeconds = validForHours * 60L * 60L;</span>
 <span class="nc" id="L215">            final long lastChecked = getPropertyInSeconds(DatabaseProperties.LAST_CHECKED);</span>
@@ -246,8 +246,8 @@ import org.slf4j.LoggerFactory;
 <span class="pc bpc" id="L246" title="1 of 2 branches missed.">        if (updateable.isEmpty()) {</span>
 <span class="nc" id="L247">            return;</span>
         }
-<span class="fc bfc" id="L249" title="All 2 branches covered.">        if (updateable.size() &gt; 3) {</span>
-<span class="fc" id="L250">            LOGGER.info(&quot;NVD CVE requires several updates; this could take a couple of minutes.&quot;);</span>
+<span class="pc bpc" id="L249" title="1 of 2 branches missed.">        if (updateable.size() &gt; 3) {</span>
+<span class="nc" id="L250">            LOGGER.info(&quot;NVD CVE requires several updates; this could take a couple of minutes.&quot;);</span>
         }
 
 <span class="fc" id="L253">        DownloadTask runLast = null;</span>
@@ -370,9 +370,9 @@ import org.slf4j.LoggerFactory;
 <span class="fc" id="L370">                final int startYear = settings.getInt(Settings.KEYS.CVE_START_YEAR, 2002);</span>
 <span class="fc" id="L371">                final int endYear = Calendar.getInstance().get(Calendar.YEAR);</span>
 <span class="fc" id="L372">                boolean needsFullUpdate = false;</span>
-<span class="fc bfc" id="L373" title="All 2 branches covered.">                for (int y = startYear; y &lt;= endYear; y++) {</span>
+<span class="pc bpc" id="L373" title="1 of 2 branches missed.">                for (int y = startYear; y &lt;= endYear; y++) {</span>
 <span class="fc" id="L374">                    final long val = Long.parseLong(dbProperties.getProperty(DatabaseProperties.LAST_UPDATED_BASE + y, &quot;0&quot;));</span>
-<span class="fc bfc" id="L375" title="All 2 branches covered.">                    if (val == 0) {</span>
+<span class="pc bpc" id="L375" title="1 of 2 branches missed.">                    if (val == 0) {</span>
 <span class="fc" id="L376">                        needsFullUpdate = true;</span>
 <span class="fc" id="L377">                        break;</span>
                     }
@@ -384,12 +384,12 @@ import org.slf4j.LoggerFactory;
 <span class="fc" id="L384">                String url = settings.getString(Settings.KEYS.CVE_MODIFIED_JSON);</span>
 <span class="fc" id="L385">                final MetaProperties modified = getMetaFile(url);</span>
 
-<span class="fc bfc" id="L387" title="All 4 branches covered.">                if (!needsFullUpdate &amp;&amp; lastUpdated == modified.getLastModifiedDate()) {</span>
-<span class="fc" id="L388">                    return updates;</span>
+<span class="pc bpc" id="L387" title="3 of 4 branches missed.">                if (!needsFullUpdate &amp;&amp; lastUpdated == modified.getLastModifiedDate()) {</span>
+<span class="nc" id="L388">                    return updates;</span>
                 } else {
 <span class="fc" id="L390">                    final NvdCveInfo item = new NvdCveInfo(MODIFIED, url, modified.getLastModifiedDate());</span>
 <span class="fc" id="L391">                    updates.add(item);</span>
-<span class="pc bpc" id="L392" title="1 of 4 branches missed.">                    if (needsFullUpdate || !DateUtil.withinDateRange(lastUpdated, now, days)) {</span>
+<span class="pc bpc" id="L392" title="3 of 4 branches missed.">                    if (needsFullUpdate || !DateUtil.withinDateRange(lastUpdated, now, days)) {</span>
 <span class="fc" id="L393">                        final int start = settings.getInt(Settings.KEYS.CVE_START_YEAR);</span>
 <span class="fc" id="L394">                        final int end = Calendar.getInstance().get(Calendar.YEAR);</span>
 <span class="fc" id="L395">                        final String baseUrl = settings.getString(Settings.KEYS.CVE_BASE_JSON);</span>

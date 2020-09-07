@@ -20,9 +20,6 @@ package org.owasp.dependencycheck.reporting;
 import java.time.ZonedDateTime;
 import java.util.List;
 
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonToken;
-import com.google.gson.stream.JsonWriter;
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
 import java.io.File;
@@ -35,7 +32,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UnsupportedEncodingException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.time.format.DateTimeFormatter;
 import java.util.Collections;
@@ -70,6 +66,10 @@ import org.slf4j.LoggerFactory;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.XMLReader;
+
+import com.fasterxml.jackson.core.JsonFactory;
+import com.fasterxml.jackson.core.JsonGenerator;
+import com.fasterxml.jackson.core.JsonParser;
 
 /**
  * The ReportGenerator is used to, as the name implies, generate reports.
@@ -337,11 +337,11 @@ public class ReportGenerator {
 <span class="fc" id="L337">            final File out = getReportFile(outputLocation, format);</span>
 <span class="fc" id="L338">            final String templateName = format.toString().toLowerCase() + &quot;Report&quot;;</span>
 <span class="fc" id="L339">            processTemplate(templateName, out);</span>
-<span class="pc bpc" id="L340" title="1 of 2 branches missed.">            if (settings.getBoolean(Settings.KEYS.PRETTY_PRINT, false)) {</span>
-<span class="nc bnc" id="L341" title="All 2 branches missed.">                if (format == Format.JSON) {</span>
-<span class="nc" id="L342">                    pretifyJson(out.getPath());</span>
-<span class="nc bnc" id="L343" title="All 4 branches missed.">                } else if (format == Format.XML || format == Format.JUNIT) {</span>
-<span class="nc" id="L344">                    pretifyXml(out.getPath());</span>
+<span class="fc bfc" id="L340" title="All 2 branches covered.">            if (settings.getBoolean(Settings.KEYS.PRETTY_PRINT, false)) {</span>
+<span class="fc bfc" id="L341" title="All 2 branches covered.">                if (format == Format.JSON) {</span>
+<span class="fc" id="L342">                    pretifyJson(out.getPath());</span>
+<span class="fc bfc" id="L343" title="All 4 branches covered.">                } else if (format == Format.XML || format == Format.JUNIT) {</span>
+<span class="fc" id="L344">                    pretifyXml(out.getPath());</span>
                 }
             }
         }
@@ -484,37 +484,41 @@ public class ReportGenerator {
      * @throws ReportException thrown if the given JSON file is malformed
      */
     private void pretifyXml(String path) throws ReportException {
-<span class="nc" id="L487">        final String outputPath = path + &quot;.pretty&quot;;</span>
-<span class="nc" id="L488">        final File in = new File(path);</span>
-<span class="nc" id="L489">        final File out = new File(outputPath);</span>
+<span class="fc" id="L487">        final String outputPath = path + &quot;.pretty&quot;;</span>
+<span class="fc" id="L488">        final File in = new File(path);</span>
+<span class="fc" id="L489">        final File out = new File(outputPath);</span>
         try {
-<span class="nc" id="L491">            final TransformerFactory transformerFactory = SAXTransformerFactory.newInstance();</span>
-<span class="nc" id="L492">            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);</span>
-<span class="nc" id="L493">            final Transformer transformer = transformerFactory.newTransformer();</span>
-<span class="nc" id="L494">            transformer.setOutputProperty(OutputKeys.ENCODING, &quot;UTF-8&quot;);</span>
-<span class="nc" id="L495">            transformer.setOutputProperty(OutputKeys.INDENT, &quot;yes&quot;);</span>
-<span class="nc" id="L496">            transformer.setOutputProperty(&quot;{http://xml.apache.org/xslt}indent-amount&quot;, &quot;2&quot;);</span>
+<span class="fc" id="L491">            final TransformerFactory transformerFactory = SAXTransformerFactory.newInstance();</span>
+<span class="fc" id="L492">            transformerFactory.setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true);</span>
+<span class="fc" id="L493">            final Transformer transformer = transformerFactory.newTransformer();</span>
+<span class="fc" id="L494">            transformer.setOutputProperty(OutputKeys.ENCODING, &quot;UTF-8&quot;);</span>
+<span class="fc" id="L495">            transformer.setOutputProperty(OutputKeys.INDENT, &quot;yes&quot;);</span>
+<span class="fc" id="L496">            transformer.setOutputProperty(&quot;{http://xml.apache.org/xslt}indent-amount&quot;, &quot;2&quot;);</span>
 
-<span class="nc" id="L498">            final SAXSource saxs = new SAXSource(new InputSource(path));</span>
-<span class="nc" id="L499">            final XMLReader saxReader = XmlUtils.buildSecureSaxParser().getXMLReader();</span>
+<span class="fc" id="L498">            final SAXSource saxs = new SAXSource(new InputSource(path));</span>
+<span class="fc" id="L499">            final XMLReader saxReader = XmlUtils.buildSecureSaxParser().getXMLReader();</span>
 
-<span class="nc" id="L501">            saxs.setXMLReader(saxReader);</span>
-<span class="nc" id="L502">            transformer.transform(saxs, new StreamResult(new OutputStreamWriter(new FileOutputStream(out), &quot;utf-8&quot;)));</span>
+<span class="fc" id="L501">            saxs.setXMLReader(saxReader);</span>
+<span class="fc" id="L502">            transformer.transform(saxs, new StreamResult(new OutputStreamWriter(new FileOutputStream(out), &quot;utf-8&quot;)));</span>
 <span class="nc" id="L503">        } catch (ParserConfigurationException | TransformerConfigurationException ex) {</span>
 <span class="nc" id="L504">            LOGGER.debug(&quot;Configuration exception when pretty printing&quot;, ex);</span>
 <span class="nc" id="L505">            LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
 <span class="nc" id="L506">        } catch (TransformerException | SAXException | FileNotFoundException | UnsupportedEncodingException ex) {</span>
 <span class="nc" id="L507">            LOGGER.debug(&quot;Malformed XML?&quot;, ex);</span>
 <span class="nc" id="L508">            LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
-<span class="nc" id="L509">        }</span>
-<span class="nc bnc" id="L510" title="All 6 branches missed.">        if (out.isFile() &amp;&amp; in.isFile() &amp;&amp; in.delete()) {</span>
+<span class="pc" id="L509">        }</span>
+<span class="pc bpc" id="L510" title="3 of 6 branches missed.">        if (out.isFile() &amp;&amp; in.isFile() &amp;&amp; in.delete()) {</span>
             try {
-<span class="nc" id="L512">                org.apache.commons.io.FileUtils.moveFile(out, in);</span>
-<span class="nc" id="L513">            } catch (IOException ex) {</span>
-<span class="nc" id="L514">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
-<span class="nc" id="L515">            }</span>
+<span class="fc" id="L512">                Thread.sleep(1000);</span>
+<span class="fc" id="L513">                org.apache.commons.io.FileUtils.moveFile(out, in);</span>
+<span class="nc" id="L514">            } catch (IOException ex) {</span>
+<span class="nc" id="L515">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L516">            } catch (InterruptedException ex) {</span>
+<span class="nc" id="L517">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L518">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
+<span class="pc" id="L519">            }</span>
         }
-<span class="nc" id="L517">    }</span>
+<span class="fc" id="L521">    }</span>
 
     /**
      * Reformats the given JSON file.
@@ -523,82 +527,37 @@ public class ReportGenerator {
      * @throws ReportException thrown if the given JSON file is malformed
      */
     private void pretifyJson(String pathToJson) throws ReportException {
-<span class="nc" id="L526">        final String outputPath = pathToJson + &quot;.pretty&quot;;</span>
-<span class="nc" id="L527">        final File in = new File(pathToJson);</span>
-<span class="nc" id="L528">        final File out = new File(outputPath);</span>
-<span class="nc" id="L529">        try (JsonReader reader = new JsonReader(new InputStreamReader(new FileInputStream(in), StandardCharsets.UTF_8));</span>
-<span class="nc" id="L530">                JsonWriter writer = new JsonWriter(new OutputStreamWriter(new FileOutputStream(out), StandardCharsets.UTF_8))) {</span>
-<span class="nc" id="L531">            prettyPrint(reader, writer);</span>
-<span class="nc" id="L532">        } catch (IOException ex) {</span>
-<span class="nc" id="L533">            LOGGER.debug(&quot;Malformed JSON?&quot;, ex);</span>
-<span class="nc" id="L534">            throw new ReportException(&quot;Unable to generate json report&quot;, ex);</span>
-<span class="nc" id="L535">        }</span>
-<span class="nc bnc" id="L536" title="All 6 branches missed.">        if (out.isFile() &amp;&amp; in.isFile() &amp;&amp; in.delete()) {</span>
-            try {
-<span class="nc" id="L538">                org.apache.commons.io.FileUtils.moveFile(out, in);</span>
-<span class="nc" id="L539">            } catch (IOException ex) {</span>
-<span class="nc" id="L540">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
-<span class="nc" id="L541">            }</span>
-        }
-<span class="nc" id="L543">    }</span>
+<span class="fc" id="L530">        final String outputPath = pathToJson + &quot;.pretty&quot;;</span>
+<span class="fc" id="L531">        final File in = new File(pathToJson);</span>
+<span class="fc" id="L532">        final File out = new File(outputPath);</span>
 
-    /**
-     * Streams from a json reader to a json writer and performs pretty printing.
-     * &lt;p&gt;
-     * This function is copied from https://sites.google.com/site/gson/streaming
-     *
-     * @param reader json reader
-     * @param writer json writer
-     * @throws IOException thrown if the json is malformed
-     */
-    private static void prettyPrint(JsonReader reader, JsonWriter writer) throws IOException {
-<span class="nc" id="L555">        writer.setIndent(&quot;  &quot;);</span>
-        while (true) {
-<span class="nc" id="L557">            final JsonToken token = reader.peek();</span>
-<span class="nc bnc" id="L558" title="All 11 branches missed.">            switch (token) {</span>
-                case BEGIN_ARRAY:
-<span class="nc" id="L560">                    reader.beginArray();</span>
-<span class="nc" id="L561">                    writer.beginArray();</span>
-<span class="nc" id="L562">                    break;</span>
-                case END_ARRAY:
-<span class="nc" id="L564">                    reader.endArray();</span>
-<span class="nc" id="L565">                    writer.endArray();</span>
-<span class="nc" id="L566">                    break;</span>
-                case BEGIN_OBJECT:
-<span class="nc" id="L568">                    reader.beginObject();</span>
-<span class="nc" id="L569">                    writer.beginObject();</span>
-<span class="nc" id="L570">                    break;</span>
-                case END_OBJECT:
-<span class="nc" id="L572">                    reader.endObject();</span>
-<span class="nc" id="L573">                    writer.endObject();</span>
-<span class="nc" id="L574">                    break;</span>
-                case NAME:
-<span class="nc" id="L576">                    final String name = reader.nextName();</span>
-<span class="nc" id="L577">                    writer.name(name);</span>
-<span class="nc" id="L578">                    break;</span>
-                case STRING:
-<span class="nc" id="L580">                    final String s = reader.nextString();</span>
-<span class="nc" id="L581">                    writer.value(s);</span>
-<span class="nc" id="L582">                    break;</span>
-                case NUMBER:
-<span class="nc" id="L584">                    final String n = reader.nextString();</span>
-<span class="nc" id="L585">                    writer.value(new BigDecimal(n));</span>
-<span class="nc" id="L586">                    break;</span>
-                case BOOLEAN:
-<span class="nc" id="L588">                    final boolean b = reader.nextBoolean();</span>
-<span class="nc" id="L589">                    writer.value(b);</span>
-<span class="nc" id="L590">                    break;</span>
-                case NULL:
-<span class="nc" id="L592">                    reader.nextNull();</span>
-<span class="nc" id="L593">                    writer.nullValue();</span>
-<span class="nc" id="L594">                    break;</span>
-                case END_DOCUMENT:
-<span class="nc" id="L596">                    return;</span>
-                default:
-<span class="nc" id="L598">                    LOGGER.debug(&quot;Unexpected JSON toekn {}&quot;, token.toString());</span>
-                    break;
+<span class="fc" id="L534">        final JsonFactory factory = new JsonFactory();</span>
+
+<span class="fc" id="L536">        try (</span>
+<span class="fc" id="L537">                JsonParser parser = factory.createParser(new FileInputStream(in));</span>
+<span class="fc" id="L538">                JsonGenerator generator = factory.createGenerator(new FileOutputStream(out))) {</span>
+
+<span class="fc" id="L540">            generator.useDefaultPrettyPrinter();</span>
+
+<span class="fc bfc" id="L542" title="All 2 branches covered.">            while (parser.nextToken() != null) {</span>
+<span class="fc" id="L543">                generator.copyCurrentEvent(parser);</span>
             }
-<span class="nc" id="L601">        }</span>
-    }
+<span class="nc" id="L545">        } catch (IOException ex) {</span>
+<span class="nc" id="L546">            LOGGER.debug(&quot;Malformed JSON?&quot;, ex);</span>
+<span class="nc" id="L547">            throw new ReportException(&quot;Unable to generate json report&quot;, ex);</span>
+<span class="fc" id="L548">        }</span>
+<span class="pc bpc" id="L549" title="3 of 6 branches missed.">        if (out.isFile() &amp;&amp; in.isFile() &amp;&amp; in.delete()) {</span>
+            try {
+<span class="fc" id="L551">                Thread.sleep(1000);</span>
+<span class="fc" id="L552">                org.apache.commons.io.FileUtils.moveFile(out, in);</span>
+<span class="nc" id="L553">            } catch (IOException ex) {</span>
+<span class="nc" id="L554">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
+<span class="nc" id="L555">            } catch (InterruptedException ex) {</span>
+<span class="nc" id="L556">                Thread.currentThread().interrupt();</span>
+<span class="nc" id="L557">                LOGGER.error(&quot;Unable to generate pretty report, caused by: {}&quot;, ex.getMessage());</span>
+<span class="pc" id="L558">            }</span>
+        }
+<span class="fc" id="L560">    }</span>
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

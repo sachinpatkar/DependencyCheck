@@ -27,38 +27,55 @@ import java.util.function.Supplier;
 import java.util.stream.Collector;
 import java.util.stream.Stream;
 
+import javax.annotation.concurrent.ThreadSafe;
+
 /**
  *
  * @author Jeremy Long
+ *
  */
-<span class="fc" id="L34">public class CpeMatchStreamCollector implements Collector&lt;DefNode, ArrayList&lt;DefCpeMatch&gt;, Stream&lt;DefCpeMatch&gt;&gt; {</span>
+@ThreadSafe
+public final class CpeMatchStreamCollector implements Collector&lt;DefNode, ArrayList&lt;DefCpeMatch&gt;, Stream&lt;DefCpeMatch&gt;&gt; {
+
+    private static final CpeMatchStreamCollector INSTANCE;
+
+    static {
+<span class="fc" id="L43">        INSTANCE = new CpeMatchStreamCollector();</span>
+<span class="fc" id="L44">    }</span>
+
+    public static CpeMatchStreamCollector getInstance() {
+<span class="fc" id="L47">        return INSTANCE;</span>
+    }
+
+    private CpeMatchStreamCollector() {
+    }
 
     @Override
     public Supplier&lt;ArrayList&lt;DefCpeMatch&gt;&gt; supplier() {
-<span class="fc" id="L38">        return ArrayList::new;</span>
+<span class="fc" id="L55">        return ArrayList::new;</span>
     }
 
     @Override
     public BiConsumer&lt;ArrayList&lt;DefCpeMatch&gt;, DefNode&gt; accumulator() {
-<span class="fc" id="L43">        return (match, nodes) -&gt; match.addAll(nodes.getCpeMatch());</span>
+<span class="fc" id="L60">        return (match, nodes) -&gt; match.addAll(nodes.getCpeMatch());</span>
     }
 
     @Override
     public BinaryOperator&lt;ArrayList&lt;DefCpeMatch&gt;&gt; combiner() {
-<span class="fc" id="L48">        return (map, other) -&gt; {</span>
-<span class="nc" id="L49">            map.addAll(other);</span>
-<span class="nc" id="L50">            return map;</span>
+<span class="fc" id="L65">        return (map, other) -&gt; {</span>
+<span class="nc" id="L66">            map.addAll(other);</span>
+<span class="nc" id="L67">            return map;</span>
         };
     }
 
     @Override
     public Function&lt;ArrayList&lt;DefCpeMatch&gt;, Stream&lt;DefCpeMatch&gt;&gt; finisher() {
-<span class="fc" id="L56">        return (m) -&gt; m.stream();</span>
+<span class="fc" id="L73">        return (m) -&gt; m.stream();</span>
     }
 
     @Override
     public Set&lt;Characteristics&gt; characteristics() {
-<span class="fc" id="L61">        return EnumSet.of(Characteristics.UNORDERED);</span>
+<span class="fc" id="L78">        return EnumSet.of(Characteristics.UNORDERED);</span>
     }
 
 }

@@ -2,83 +2,90 @@
 package org.owasp.dependencycheck.data.nvd.json;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
+import java.util.Map;
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
 
 /**
  * Defines the set of product configurations for a NVD applicability statement.
  * 
  */
-<span class="fc" id="L14">public class DefConfigurations {</span>
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JsonPropertyOrder({
+    &quot;nodes&quot;
+})
+<span class="fc" id="L24">public class DefConfigurations {</span>
 
-    /**
-     * 
-     * (Required)
-     * 
-     */
-    @SerializedName(&quot;CVE_data_version&quot;)
-    @Expose
-    private String cVEDataVersion;
-<span class="fc" id="L24">    @SerializedName(&quot;nodes&quot;)</span>
-    @Expose
+<span class="fc" id="L26">    @JsonProperty(&quot;nodes&quot;)</span>
     private List&lt;DefNode&gt; nodes = new ArrayList&lt;DefNode&gt;();
+<span class="fc" id="L28">    @JsonIgnore</span>
+    private Map&lt;String, Object&gt; additionalProperties = new HashMap&lt;String, Object&gt;();
 
-    public String getCVEDataVersion() {
-<span class="nc" id="L29">        return cVEDataVersion;</span>
-    }
-
-    public void setCVEDataVersion(String cVEDataVersion) {
-<span class="nc" id="L33">        this.cVEDataVersion = cVEDataVersion;</span>
-<span class="nc" id="L34">    }</span>
-
+    @JsonProperty(&quot;nodes&quot;)
     public List&lt;DefNode&gt; getNodes() {
-<span class="fc" id="L37">        return nodes;</span>
+<span class="fc" id="L33">        return nodes;</span>
     }
 
+    @JsonProperty(&quot;nodes&quot;)
     public void setNodes(List&lt;DefNode&gt; nodes) {
-<span class="nc" id="L41">        this.nodes = nodes;</span>
-<span class="nc" id="L42">    }</span>
+<span class="fc" id="L38">        this.nodes = nodes;</span>
+<span class="fc" id="L39">    }</span>
+
+    @JsonAnyGetter
+    public Map&lt;String, Object&gt; getAdditionalProperties() {
+<span class="nc" id="L43">        return this.additionalProperties;</span>
+    }
+
+    @JsonAnySetter
+    public void setAdditionalProperty(String name, Object value) {
+<span class="fc" id="L48">        this.additionalProperties.put(name, value);</span>
+<span class="fc" id="L49">    }</span>
 
     @Override
     public String toString() {
-<span class="nc" id="L46">        StringBuilder sb = new StringBuilder();</span>
-<span class="nc" id="L47">        sb.append(DefConfigurations.class.getName()).append('@').append(Integer.toHexString(System.identityHashCode(this))).append('[');</span>
-<span class="nc" id="L48">        sb.append(&quot;cVEDataVersion&quot;);</span>
-<span class="nc" id="L49">        sb.append('=');</span>
-<span class="nc bnc" id="L50" title="All 2 branches missed.">        sb.append(((this.cVEDataVersion == null)?&quot;&lt;null&gt;&quot;:this.cVEDataVersion));</span>
-<span class="nc" id="L51">        sb.append(',');</span>
-<span class="nc" id="L52">        sb.append(&quot;nodes&quot;);</span>
-<span class="nc" id="L53">        sb.append('=');</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">        sb.append(((this.nodes == null)?&quot;&lt;null&gt;&quot;:this.nodes));</span>
-<span class="nc" id="L55">        sb.append(',');</span>
-<span class="nc bnc" id="L56" title="All 2 branches missed.">        if (sb.charAt((sb.length()- 1)) == ',') {</span>
-<span class="nc" id="L57">            sb.setCharAt((sb.length()- 1), ']');</span>
+<span class="nc" id="L53">        StringBuilder sb = new StringBuilder();</span>
+<span class="nc" id="L54">        sb.append(DefConfigurations.class.getName()).append('@').append(Integer.toHexString(System.identityHashCode(this))).append('[');</span>
+<span class="nc" id="L55">        sb.append(&quot;nodes&quot;);</span>
+<span class="nc" id="L56">        sb.append('=');</span>
+<span class="nc bnc" id="L57" title="All 2 branches missed.">        sb.append(((this.nodes == null)?&quot;&lt;null&gt;&quot;:this.nodes));</span>
+<span class="nc" id="L58">        sb.append(',');</span>
+<span class="nc" id="L59">        sb.append(&quot;additionalProperties&quot;);</span>
+<span class="nc" id="L60">        sb.append('=');</span>
+<span class="nc bnc" id="L61" title="All 2 branches missed.">        sb.append(((this.additionalProperties == null)?&quot;&lt;null&gt;&quot;:this.additionalProperties));</span>
+<span class="nc" id="L62">        sb.append(',');</span>
+<span class="nc bnc" id="L63" title="All 2 branches missed.">        if (sb.charAt((sb.length()- 1)) == ',') {</span>
+<span class="nc" id="L64">            sb.setCharAt((sb.length()- 1), ']');</span>
         } else {
-<span class="nc" id="L59">            sb.append(']');</span>
+<span class="nc" id="L66">            sb.append(']');</span>
         }
-<span class="nc" id="L61">        return sb.toString();</span>
+<span class="nc" id="L68">        return sb.toString();</span>
     }
 
     @Override
     public int hashCode() {
-<span class="nc" id="L66">        int result = 1;</span>
-<span class="nc bnc" id="L67" title="All 2 branches missed.">        result = ((result* 31)+((this.cVEDataVersion == null)? 0 :this.cVEDataVersion.hashCode()));</span>
-<span class="nc bnc" id="L68" title="All 2 branches missed.">        result = ((result* 31)+((this.nodes == null)? 0 :this.nodes.hashCode()));</span>
-<span class="nc" id="L69">        return result;</span>
+<span class="nc" id="L73">        int result = 1;</span>
+<span class="nc bnc" id="L74" title="All 2 branches missed.">        result = ((result* 31)+((this.nodes == null)? 0 :this.nodes.hashCode()));</span>
+<span class="nc bnc" id="L75" title="All 2 branches missed.">        result = ((result* 31)+((this.additionalProperties == null)? 0 :this.additionalProperties.hashCode()));</span>
+<span class="nc" id="L76">        return result;</span>
     }
 
     @Override
     public boolean equals(Object other) {
-<span class="nc bnc" id="L74" title="All 2 branches missed.">        if (other == this) {</span>
-<span class="nc" id="L75">            return true;</span>
+<span class="nc bnc" id="L81" title="All 2 branches missed.">        if (other == this) {</span>
+<span class="nc" id="L82">            return true;</span>
         }
-<span class="nc bnc" id="L77" title="All 2 branches missed.">        if ((other instanceof DefConfigurations) == false) {</span>
-<span class="nc" id="L78">            return false;</span>
+<span class="nc bnc" id="L84" title="All 2 branches missed.">        if ((other instanceof DefConfigurations) == false) {</span>
+<span class="nc" id="L85">            return false;</span>
         }
-<span class="nc" id="L80">        DefConfigurations rhs = ((DefConfigurations) other);</span>
-<span class="nc bnc" id="L81" title="All 12 branches missed.">        return (((this.cVEDataVersion == rhs.cVEDataVersion)||((this.cVEDataVersion!= null)&amp;&amp;this.cVEDataVersion.equals(rhs.cVEDataVersion)))&amp;&amp;((this.nodes == rhs.nodes)||((this.nodes!= null)&amp;&amp;this.nodes.equals(rhs.nodes))));</span>
+<span class="nc" id="L87">        DefConfigurations rhs = ((DefConfigurations) other);</span>
+<span class="nc bnc" id="L88" title="All 12 branches missed.">        return (((this.nodes == rhs.nodes)||((this.nodes!= null)&amp;&amp;this.nodes.equals(rhs.nodes)))&amp;&amp;((this.additionalProperties == rhs.additionalProperties)||((this.additionalProperties!= null)&amp;&amp;this.additionalProperties.equals(rhs.additionalProperties))));</span>
     }
 
 }

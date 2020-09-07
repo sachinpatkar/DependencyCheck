@@ -30,9 +30,13 @@ import java.util.List;
 import javax.annotation.concurrent.ThreadSafe;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.parsers.SAXParser;
+import org.apache.commons.io.ByteOrderMark;
+import org.apache.commons.io.input.BOMInputStream;
 
 import org.owasp.dependencycheck.utils.FileUtils;
 import org.owasp.dependencycheck.utils.XmlUtils;
+import org.owasp.dependencycheck.xml.XmlInputStream;
+import org.owasp.dependencycheck.xml.pom.PomProjectInputStream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +51,12 @@ import org.xml.sax.XMLReader;
  * @author Jeremy Long
  */
 @ThreadSafe
-<span class="fc" id="L50">public class SuppressionParser {</span>
+<span class="fc" id="L54">public class SuppressionParser {</span>
 
     /**
      * The logger.
      */
-<span class="fc" id="L55">    private static final Logger LOGGER = LoggerFactory.getLogger(SuppressionParser.class);</span>
+<span class="fc" id="L59">    private static final Logger LOGGER = LoggerFactory.getLogger(SuppressionParser.class);</span>
     /**
      * The suppression schema file location for v 1.3.
      */
@@ -80,11 +84,11 @@ import org.xml.sax.XMLReader;
      */
     @SuppressFBWarnings(justification = &quot;try with resource will clenaup the resources&quot;, value = {&quot;OBL_UNSATISFIED_OBLIGATION&quot;})
     public List&lt;SuppressionRule&gt; parseSuppressionRules(File file) throws SuppressionParseException {
-<span class="fc" id="L83">        try (FileInputStream fis = new FileInputStream(file)) {</span>
-<span class="fc" id="L84">            return parseSuppressionRules(fis);</span>
-<span class="nc" id="L85">        } catch (SAXException | IOException ex) {</span>
-<span class="nc" id="L86">            LOGGER.debug(&quot;&quot;, ex);</span>
-<span class="nc" id="L87">            throw new SuppressionParseException(ex);</span>
+<span class="fc" id="L87">        try (FileInputStream fis = new FileInputStream(file)) {</span>
+<span class="fc" id="L88">            return parseSuppressionRules(fis);</span>
+<span class="nc" id="L89">        } catch (SAXException | IOException ex) {</span>
+<span class="nc" id="L90">            LOGGER.debug(&quot;&quot;, ex);</span>
+<span class="nc" id="L91">            throw new SuppressionParseException(ex);</span>
         }
     }
 
@@ -98,35 +102,41 @@ import org.xml.sax.XMLReader;
      * @throws SAXException thrown if the XML cannot be parsed
      */
     public List&lt;SuppressionRule&gt; parseSuppressionRules(InputStream inputStream) throws SuppressionParseException, SAXException {
-<span class="fc" id="L101">        try (</span>
-<span class="fc" id="L102">                InputStream schemaStream13 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_3);</span>
-<span class="fc" id="L103">                InputStream schemaStream12 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_2);</span>
-<span class="fc" id="L104">                InputStream schemaStream11 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_1);</span>
-<span class="fc" id="L105">                InputStream schemaStream10 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_0)) {</span>
-<span class="fc" id="L106">            final SuppressionHandler handler = new SuppressionHandler();</span>
-<span class="fc" id="L107">            final SAXParser saxParser = XmlUtils.buildSecureSaxParser(schemaStream13, schemaStream12, schemaStream11, schemaStream10);</span>
-<span class="fc" id="L108">            final XMLReader xmlReader = saxParser.getXMLReader();</span>
-<span class="fc" id="L109">            xmlReader.setErrorHandler(new SuppressionErrorHandler());</span>
-<span class="fc" id="L110">            xmlReader.setContentHandler(handler);</span>
-<span class="fc" id="L111">            xmlReader.setEntityResolver(new ClassloaderResolver());</span>
-<span class="fc" id="L112">            try (Reader reader = new InputStreamReader(inputStream, StandardCharsets.UTF_8)) {</span>
-<span class="fc" id="L113">                final InputSource in = new InputSource(reader);</span>
-<span class="fc" id="L114">                xmlReader.parse(in);</span>
-<span class="fc" id="L115">                return handler.getSuppressionRules();</span>
+<span class="fc" id="L105">        try (</span>
+<span class="fc" id="L106">                InputStream schemaStream13 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_3);</span>
+<span class="fc" id="L107">                InputStream schemaStream12 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_2);</span>
+<span class="fc" id="L108">                InputStream schemaStream11 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_1);</span>
+<span class="fc" id="L109">                InputStream schemaStream10 = FileUtils.getResourceAsStream(SUPPRESSION_SCHEMA_1_0);) {</span>
+            
+<span class="fc" id="L111">            final BOMInputStream bomStream = new BOMInputStream(inputStream);</span>
+<span class="fc" id="L112">            final ByteOrderMark bom = bomStream.getBOM();</span>
+<span class="fc" id="L113">            final String defaultEncoding = StandardCharsets.UTF_8.name();</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">            final String charsetName = bom == null ? defaultEncoding : bom.getCharsetName();</span>
+
+<span class="fc" id="L116">            final SuppressionHandler handler = new SuppressionHandler();</span>
+<span class="fc" id="L117">            final SAXParser saxParser = XmlUtils.buildSecureSaxParser(schemaStream13, schemaStream12, schemaStream11, schemaStream10);</span>
+<span class="fc" id="L118">            final XMLReader xmlReader = saxParser.getXMLReader();</span>
+<span class="fc" id="L119">            xmlReader.setErrorHandler(new SuppressionErrorHandler());</span>
+<span class="fc" id="L120">            xmlReader.setContentHandler(handler);</span>
+<span class="fc" id="L121">            xmlReader.setEntityResolver(new ClassloaderResolver());</span>
+<span class="fc" id="L122">            try (Reader reader = new InputStreamReader(bomStream, charsetName)) {</span>
+<span class="fc" id="L123">                final InputSource in = new InputSource(reader);</span>
+<span class="fc" id="L124">                xmlReader.parse(in);</span>
+<span class="fc" id="L125">                return handler.getSuppressionRules();</span>
             }
-<span class="nc" id="L117">        } catch (ParserConfigurationException | FileNotFoundException ex) {</span>
-<span class="nc" id="L118">            LOGGER.debug(&quot;&quot;, ex);</span>
-<span class="nc" id="L119">            throw new SuppressionParseException(ex);</span>
-<span class="nc" id="L120">        } catch (SAXException ex) {</span>
-<span class="nc bnc" id="L121" title="All 2 branches missed.">            if (ex.getMessage().contains(&quot;Cannot find the declaration of element 'suppressions'.&quot;)) {</span>
-<span class="nc" id="L122">                throw ex;</span>
-            } else {
-<span class="nc" id="L124">                LOGGER.debug(&quot;&quot;, ex);</span>
-<span class="nc" id="L125">                throw new SuppressionParseException(ex);</span>
-            }
-<span class="nc" id="L127">        } catch (IOException ex) {</span>
+<span class="nc" id="L127">        } catch (ParserConfigurationException | FileNotFoundException ex) {</span>
 <span class="nc" id="L128">            LOGGER.debug(&quot;&quot;, ex);</span>
 <span class="nc" id="L129">            throw new SuppressionParseException(ex);</span>
+<span class="nc" id="L130">        } catch (SAXException ex) {</span>
+<span class="nc bnc" id="L131" title="All 2 branches missed.">            if (ex.getMessage().contains(&quot;Cannot find the declaration of element 'suppressions'.&quot;)) {</span>
+<span class="nc" id="L132">                throw ex;</span>
+            } else {
+<span class="nc" id="L134">                LOGGER.debug(&quot;&quot;, ex);</span>
+<span class="nc" id="L135">                throw new SuppressionParseException(ex);</span>
+            }
+<span class="nc" id="L137">        } catch (IOException ex) {</span>
+<span class="nc" id="L138">            LOGGER.debug(&quot;&quot;, ex);</span>
+<span class="nc" id="L139">            throw new SuppressionParseException(ex);</span>
         }
     }
 
@@ -138,16 +148,16 @@ import org.xml.sax.XMLReader;
         @Override
         public InputSource resolveEntity(String publicId, String systemId) throws SAXException, IOException {
 
-<span class="pc bpc" id="L141" title="1 of 4 branches missed.">            if (systemId != null &amp;&amp; systemId.startsWith(&quot;https://jeremylong.github.io/DependencyCheck/&quot;)) {</span>
-<span class="fc" id="L142">                final String resource = &quot;schema/&quot; + systemId.substring(45);</span>
-<span class="fc" id="L143">                final InputStream in = SuppressionParser.class.getClassLoader().getResourceAsStream(resource);</span>
-<span class="pc bpc" id="L144" title="1 of 2 branches missed.">                if (in != null) {</span>
-<span class="fc" id="L145">                    final InputSource source = new InputSource(in);</span>
-<span class="fc" id="L146">                    source.setSystemId(systemId);</span>
-<span class="fc" id="L147">                    return source;</span>
+<span class="pc bpc" id="L151" title="1 of 4 branches missed.">            if (systemId != null &amp;&amp; systemId.startsWith(&quot;https://jeremylong.github.io/DependencyCheck/&quot;)) {</span>
+<span class="fc" id="L152">                final String resource = &quot;schema/&quot; + systemId.substring(45);</span>
+<span class="fc" id="L153">                final InputStream in = SuppressionParser.class.getClassLoader().getResourceAsStream(resource);</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">                if (in != null) {</span>
+<span class="fc" id="L155">                    final InputSource source = new InputSource(in);</span>
+<span class="fc" id="L156">                    source.setSystemId(systemId);</span>
+<span class="fc" id="L157">                    return source;</span>
                 }
             }
-<span class="fc" id="L150">            return null;</span>
+<span class="fc" id="L160">            return null;</span>
         }
     }
 }

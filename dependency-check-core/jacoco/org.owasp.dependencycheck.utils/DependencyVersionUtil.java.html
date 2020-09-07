@@ -91,8 +91,8 @@ public final class DependencyVersionUtil {
      * @return a DependencyVersion containing the version
      */
     public static DependencyVersion parseVersion(String text, boolean firstMatchOnly) {
-<span class="fc bfc" id="L94" title="All 2 branches covered.">        if (text == null) {</span>
-<span class="fc" id="L95">            return null;</span>
+<span class="pc bpc" id="L94" title="1 of 2 branches missed.">        if (text == null) {</span>
+<span class="nc" id="L95">            return null;</span>
         }
         //'-' is a special case used within the CVE entries, just include it as the version.
 <span class="fc bfc" id="L98" title="All 2 branches covered.">        if (&quot;-&quot;.equals(text)) {</span>
@@ -149,10 +149,10 @@ public final class DependencyVersionUtil {
         }
 
 <span class="fc" id="L151">        final Matcher matcher = RX_PRE_VERSION.matcher(text);</span>
-<span class="fc bfc" id="L152" title="All 2 branches covered.">        if (matcher.find()) {</span>
+<span class="pc bpc" id="L152" title="1 of 2 branches missed.">        if (matcher.find()) {</span>
 <span class="fc" id="L153">            return matcher.group(1);</span>
         }
-<span class="fc" id="L155">        return text;</span>
+<span class="nc" id="L155">        return text;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

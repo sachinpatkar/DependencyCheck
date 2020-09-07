@@ -88,12 +88,16 @@ public final class FileUtils {
 <span class="nc" id="L88">            return false;</span>
         }
 
-<span class="fc" id="L91">        final boolean success = org.apache.commons.io.FileUtils.deleteQuietly(file);</span>
-<span class="pc bpc" id="L92" title="1 of 2 branches missed.">        if (!success) {</span>
-<span class="nc" id="L93">            LOGGER.debug(&quot;Failed to delete file: {}; attempting to delete on exit.&quot;, file.getPath());</span>
-<span class="nc" id="L94">            file.deleteOnExit();</span>
-        }
-<span class="fc" id="L96">        return success;</span>
+        try {
+<span class="fc" id="L92">            org.apache.commons.io.FileUtils.forceDelete(file);</span>
+<span class="nc" id="L93">        } catch (IOException ex) {</span>
+<span class="nc" id="L94">            LOGGER.trace(ex.getMessage(), ex);</span>
+<span class="nc" id="L95">            LOGGER.debug(&quot;Failed to delete file: {} (error message: {}); attempting to delete on exit.&quot;, file.getPath(), ex.getMessage());</span>
+<span class="nc" id="L96">            file.deleteOnExit();</span>
+<span class="nc" id="L97">            return false;</span>
+<span class="fc" id="L98">        }</span>
+
+<span class="fc" id="L100">        return true;</span>
     }
 
     /**
@@ -106,15 +110,15 @@ public final class FileUtils {
      */
     @NotNull
     public static File createTempDirectory(@Nullable final File base) throws IOException {
-<span class="fc" id="L109">        final File tempDir = new File(base, &quot;dctemp&quot; + UUID.randomUUID().toString());</span>
-<span class="pc bpc" id="L110" title="1 of 2 branches missed.">        if (tempDir.exists()) {</span>
-<span class="nc" id="L111">            return createTempDirectory(base);</span>
+<span class="fc" id="L113">        final File tempDir = new File(base, &quot;dctemp&quot; + UUID.randomUUID().toString());</span>
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        if (tempDir.exists()) {</span>
+<span class="nc" id="L115">            return createTempDirectory(base);</span>
         }
-<span class="pc bpc" id="L113" title="1 of 2 branches missed.">        if (!tempDir.mkdirs()) {</span>
-<span class="nc" id="L114">            throw new IOException(&quot;Could not create temp directory `&quot; + tempDir.getAbsolutePath() + &quot;`&quot;);</span>
+<span class="pc bpc" id="L117" title="1 of 2 branches missed.">        if (!tempDir.mkdirs()) {</span>
+<span class="nc" id="L118">            throw new IOException(&quot;Could not create temp directory `&quot; + tempDir.getAbsolutePath() + &quot;`&quot;);</span>
         }
-<span class="fc" id="L116">        LOGGER.debug(&quot;Temporary directory is `{}`&quot;, tempDir.getAbsolutePath());</span>
-<span class="fc" id="L117">        return tempDir;</span>
+<span class="fc" id="L120">        LOGGER.debug(&quot;Temporary directory is `{}`&quot;, tempDir.getAbsolutePath());</span>
+<span class="fc" id="L121">        return tempDir;</span>
     }
 
     /**
@@ -125,7 +129,7 @@ public final class FileUtils {
      */
     @NotNull
     public static String getBitBucket() {
-<span class="nc bnc" id="L128" title="All 2 branches missed.">        return SystemUtils.IS_OS_WINDOWS ? BIT_BUCKET_WIN : BIT_BUCKET_UNIX;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">        return SystemUtils.IS_OS_WINDOWS ? BIT_BUCKET_WIN : BIT_BUCKET_UNIX;</span>
     }
 
     /**
@@ -135,14 +139,14 @@ public final class FileUtils {
      * @param closeable to be closed
      */
     public static void close(@Nullable final Closeable closeable) {
-<span class="nc bnc" id="L138" title="All 2 branches missed.">        if (null != closeable) {</span>
+<span class="nc bnc" id="L142" title="All 2 branches missed.">        if (null != closeable) {</span>
             try {
-<span class="nc" id="L140">                closeable.close();</span>
-<span class="nc" id="L141">            } catch (IOException ex) {</span>
-<span class="nc" id="L142">                LOGGER.trace(&quot;&quot;, ex);</span>
-<span class="nc" id="L143">            }</span>
+<span class="nc" id="L144">                closeable.close();</span>
+<span class="nc" id="L145">            } catch (IOException ex) {</span>
+<span class="nc" id="L146">                LOGGER.trace(&quot;&quot;, ex);</span>
+<span class="nc" id="L147">            }</span>
         }
-<span class="nc" id="L145">    }</span>
+<span class="nc" id="L149">    }</span>
 
     /**
      * Gets the {@link java.io.InputStream} for this resource.
@@ -152,19 +156,19 @@ public final class FileUtils {
      */
     @Nullable
     public static InputStream getResourceAsStream(@NotNull String resource) {
-<span class="fc" id="L155">        final ClassLoader classLoader = FileUtils.class.getClassLoader();</span>
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">        final InputStream inputStream = classLoader != null</span>
-<span class="fc" id="L157">                ? classLoader.getResourceAsStream(resource)</span>
-<span class="pc" id="L158">                : ClassLoader.getSystemResourceAsStream(resource);</span>
+<span class="fc" id="L159">        final ClassLoader classLoader = FileUtils.class.getClassLoader();</span>
+<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        final InputStream inputStream = classLoader != null</span>
+<span class="pc" id="L161">                ? classLoader.getResourceAsStream(resource)</span>
+<span class="pc" id="L162">                : ClassLoader.getSystemResourceAsStream(resource);</span>
 
-<span class="pc bpc" id="L160" title="1 of 2 branches missed.">        if (inputStream == null) {</span>
+<span class="pc bpc" id="L164" title="1 of 2 branches missed.">        if (inputStream == null) {</span>
             try {
-<span class="nc" id="L162">                return new FileInputStream(resource);</span>
-<span class="nc" id="L163">            } catch (final FileNotFoundException e) {</span>
-<span class="nc" id="L164">                LOGGER.error(&quot;Unable to create an Input Stream for &quot; + resource, e);</span>
+<span class="nc" id="L166">                return new FileInputStream(resource);</span>
+<span class="nc" id="L167">            } catch (final FileNotFoundException e) {</span>
+<span class="nc" id="L168">                LOGGER.error(&quot;Unable to create an Input Stream for &quot; + resource, e);</span>
             }
         }
-<span class="fc" id="L167">        return inputStream;</span>
+<span class="fc" id="L171">        return inputStream;</span>
     }
 
     /**
@@ -175,15 +179,15 @@ public final class FileUtils {
      * @return the file reference for the resource
      */
     public static File getResourceAsFile(final String resource) {
-<span class="nc" id="L178">        final ClassLoader classLoader = FileUtils.class.getClassLoader();</span>
-<span class="nc bnc" id="L179" title="All 2 branches missed.">        final String path = classLoader != null</span>
-<span class="nc" id="L180">                ? classLoader.getResource(resource).getFile()</span>
-<span class="nc" id="L181">                : ClassLoader.getSystemResource(resource).getFile();</span>
+<span class="nc" id="L182">        final ClassLoader classLoader = FileUtils.class.getClassLoader();</span>
+<span class="nc bnc" id="L183" title="All 2 branches missed.">        final String path = classLoader != null</span>
+<span class="nc" id="L184">                ? classLoader.getResource(resource).getFile()</span>
+<span class="nc" id="L185">                : ClassLoader.getSystemResource(resource).getFile();</span>
 
-<span class="nc bnc" id="L183" title="All 2 branches missed.">        if (path == null) {</span>
-<span class="nc" id="L184">            return new File(resource);</span>
+<span class="nc bnc" id="L187" title="All 2 branches missed.">        if (path == null) {</span>
+<span class="nc" id="L188">            return new File(resource);</span>
         }
-<span class="nc" id="L186">        return new File(path);</span>
+<span class="nc" id="L190">        return new File(path);</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>

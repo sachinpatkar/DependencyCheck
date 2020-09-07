@@ -127,8 +127,8 @@ import org.owasp.dependencycheck.utils.Settings;
                 // If the version number is just a number like 2 or 23, reduce the confidence
                 // a shade. This should hopefully correct for cases like log4j.jar or
                 // struts2-core.jar
-<span class="pc bpc" id="L130" title="1 of 4 branches missed.">                if (version.getVersionParts() == null || version.getVersionParts().size() &lt; 2) {</span>
-<span class="fc" id="L131">                    dependency.addEvidence(EvidenceType.VERSION, &quot;file&quot;, &quot;version&quot;, version.toString(), Confidence.MEDIUM);</span>
+<span class="pc bpc" id="L130" title="2 of 4 branches missed.">                if (version.getVersionParts() == null || version.getVersionParts().size() &lt; 2) {</span>
+<span class="nc" id="L131">                    dependency.addEvidence(EvidenceType.VERSION, &quot;file&quot;, &quot;version&quot;, version.toString(), Confidence.MEDIUM);</span>
                 } else {
 <span class="fc" id="L133">                    dependency.addEvidence(EvidenceType.VERSION, &quot;file&quot;, &quot;version&quot;, version.toString(), Confidence.HIGH);</span>
                 }

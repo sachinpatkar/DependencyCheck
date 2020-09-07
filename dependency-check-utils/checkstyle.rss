@@ -26,7 +26,7 @@ under the License.
     <copyright>&#169;2012 - 2020 OWASP</copyright>
     <item>
       <title>File: 18,
-             Errors: 0,
+             Errors: 9,
              Warnings: 0,
              Infos: 0
       </title>
@@ -47,6 +47,20 @@ under the License.
                           <tr>
                 <td>
                   <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.ExpectedObjectInputStream.java">org/owasp/dependencycheck/utils/ExpectedObjectInputStream.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.DownloadFailedException.java">org/owasp/dependencycheck/utils/DownloadFailedException.java</a>
                 </td>
                 <td>
                   0
@@ -83,21 +97,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.DownloadFailedException.java">org/owasp/dependencycheck/utils/DownloadFailedException.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
+                  6
                 </td>
               </tr>
                           <tr>
@@ -125,26 +125,26 @@ under the License.
                   0
                 </td>
                 <td>
+                  1
+                </td>
+              </tr>
+                          <tr>
+                <td>
+                  <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.InvalidSettingException.java">org/owasp/dependencycheck/utils/InvalidSettingException.java</a>
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
+                  0
+                </td>
+                <td>
                   0
                 </td>
               </tr>
                           <tr>
                 <td>
                   <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.Settings.java">org/owasp/dependencycheck/utils/Settings.java</a>
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-                <td>
-                  0
-                </td>
-              </tr>
-                          <tr>
-                <td>
-                  <a href="https://github.com/jeremylong/DependencyCheck.git/dependency-check-utils/checkstyle.html#org.owasp.dependencycheck.utils.InvalidSettingException.java">org/owasp/dependencycheck/utils/InvalidSettingException.java</a>
                 </td>
                 <td>
                   0
@@ -279,7 +279,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  0
+                  1
                 </td>
               </tr>
                           <tr>
@@ -293,7 +293,7 @@ under the License.
                   0
                 </td>
                 <td>
-                  0
+                  1
                 </td>
               </tr>
                       </tbody>

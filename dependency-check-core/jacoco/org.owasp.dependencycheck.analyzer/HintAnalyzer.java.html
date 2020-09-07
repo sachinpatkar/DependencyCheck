@@ -145,12 +145,12 @@ import org.xml.sax.SAXException;
 <span class="fc bfc" id="L145" title="All 2 branches covered.">        for (HintRule hint : hints) {</span>
 <span class="fc" id="L146">            boolean matchFound = false;</span>
 <span class="fc bfc" id="L147" title="All 2 branches covered.">            for (EvidenceMatcher given : hint.getGivenVendor()) {</span>
-<span class="fc bfc" id="L148" title="All 2 branches covered.">                if (hasMatchingEvidence(dependency.getEvidence(EvidenceType.VENDOR), given)) {</span>
-<span class="fc" id="L149">                    matchFound = true;</span>
-<span class="fc" id="L150">                    break;</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                if (hasMatchingEvidence(dependency.getEvidence(EvidenceType.VENDOR), given)) {</span>
+<span class="nc" id="L149">                    matchFound = true;</span>
+<span class="nc" id="L150">                    break;</span>
                 }
 <span class="fc" id="L152">            }</span>
-<span class="fc bfc" id="L153" title="All 2 branches covered.">            if (!matchFound) {</span>
+<span class="pc bpc" id="L153" title="1 of 2 branches missed.">            if (!matchFound) {</span>
 <span class="fc bfc" id="L154" title="All 2 branches covered.">                for (EvidenceMatcher given : hint.getGivenProduct()) {</span>
 <span class="fc bfc" id="L155" title="All 2 branches covered.">                    if (hasMatchingEvidence(dependency.getEvidence(EvidenceType.PRODUCT), given)) {</span>
 <span class="fc" id="L156">                        matchFound = true;</span>
@@ -168,9 +168,9 @@ import org.xml.sax.SAXException;
             }
 <span class="fc bfc" id="L169" title="All 2 branches covered.">            if (!matchFound) {</span>
 <span class="fc bfc" id="L170" title="All 2 branches covered.">                for (PropertyType pt : hint.getFileNames()) {</span>
-<span class="fc bfc" id="L171" title="All 2 branches covered.">                    if (pt.matches(dependency.getFileName())) {</span>
-<span class="fc" id="L172">                        matchFound = true;</span>
-<span class="fc" id="L173">                        break;</span>
+<span class="pc bpc" id="L171" title="1 of 2 branches missed.">                    if (pt.matches(dependency.getFileName())) {</span>
+<span class="nc" id="L172">                        matchFound = true;</span>
+<span class="nc" id="L173">                        break;</span>
                     }
 <span class="fc" id="L175">                }</span>
             }

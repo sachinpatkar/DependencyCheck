@@ -14,6 +14,7 @@ org.owasp.dependencycheck.data.lucene
 org.owasp.dependencycheck.data.nexus
 org.owasp.dependencycheck.data.nodeaudit
 org.owasp.dependencycheck.data.nuget
+org.owasp.dependencycheck.data.nvd.ecosystem
 org.owasp.dependencycheck.data.nvd.json
 org.owasp.dependencycheck.data.nvdcve
 org.owasp.dependencycheck.data.ossindex

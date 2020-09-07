@@ -198,9 +198,10 @@ public class NexusSearch {
 <span class="nc" id="L198">                return false;</span>
             }
 <span class="nc" id="L200">        } catch (IOException | ParserConfigurationException | SAXException e) {</span>
-<span class="nc" id="L201">            return false;</span>
-<span class="nc" id="L202">        }</span>
-<span class="nc" id="L203">        return true;</span>
+<span class="nc" id="L201">            LOGGER.warn(&quot;Pre-flight request to Nexus failed: &quot;, e);</span>
+<span class="nc" id="L202">            return false;</span>
+<span class="nc" id="L203">        }</span>
+<span class="nc" id="L204">        return true;</span>
     }
 
     /**
@@ -209,17 +210,17 @@ public class NexusSearch {
      * @return the base64 encoded basic authentication header value
      */
     private String buildHttpAuthHeaderValue() {
-<span class="nc" id="L212">        final String user = settings.getString(Settings.KEYS.ANALYZER_NEXUS_USER, &quot;&quot;);</span>
-<span class="nc" id="L213">        final String pass = settings.getString(Settings.KEYS.ANALYZER_NEXUS_PASSWORD, &quot;&quot;);</span>
-<span class="nc" id="L214">        String result = &quot;&quot;;</span>
-<span class="nc bnc" id="L215" title="All 4 branches missed.">        if (user.isEmpty() || pass.isEmpty()) {</span>
-<span class="nc" id="L216">            LOGGER.debug(&quot;Skip authentication as user and/or password for nexus is empty&quot;);</span>
+<span class="nc" id="L213">        final String user = settings.getString(Settings.KEYS.ANALYZER_NEXUS_USER, &quot;&quot;);</span>
+<span class="nc" id="L214">        final String pass = settings.getString(Settings.KEYS.ANALYZER_NEXUS_PASSWORD, &quot;&quot;);</span>
+<span class="nc" id="L215">        String result = &quot;&quot;;</span>
+<span class="nc bnc" id="L216" title="All 4 branches missed.">        if (user.isEmpty() || pass.isEmpty()) {</span>
+<span class="nc" id="L217">            LOGGER.debug(&quot;Skip authentication as user and/or password for nexus is empty&quot;);</span>
         } else {
-<span class="nc" id="L218">            final String auth = user + ':' + pass;</span>
-<span class="nc" id="L219">            final String base64Auth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));</span>
-<span class="nc" id="L220">            result = &quot;Basic &quot; + base64Auth;</span>
+<span class="nc" id="L219">            final String auth = user + ':' + pass;</span>
+<span class="nc" id="L220">            final String base64Auth = Base64.getEncoder().encodeToString(auth.getBytes(StandardCharsets.UTF_8));</span>
+<span class="nc" id="L221">            result = &quot;Basic &quot; + base64Auth;</span>
         }
-<span class="nc" id="L222">        return result;</span>
+<span class="nc" id="L223">        return result;</span>
     }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.5.201910111838</span></div></body></html>
