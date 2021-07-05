@@ -20,7 +20,7 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
     <parent>
         <groupId>org.owasp</groupId>
         <artifactId>dependency-check-parent</artifactId>
-        <version>6.0.1-SNAPSHOT</version>
+        <version>6.2.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>dependency-check-core</artifactId>
@@ -32,7 +32,7 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
         <connection>scm:git:https://github.com/jeremylong/DependencyCheck.git</connection>
         <url>https://github.com/jeremylong/DependencyCheck/tree/master/core</url>
         <developerConnection>scm:git:git@github.com:jeremylong/DependencyCheck.git</developerConnection>
-        <tag>HEAD</tag>
+        <tag>v6.2.2</tag>
     </scm>
     <build>
         <resources>
@@ -233,6 +233,10 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
             <artifactId>commons-text</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-dbcp2</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.apache.lucene</groupId>
             <artifactId>lucene-core</artifactId>
         </dependency>
@@ -262,10 +266,6 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
             <artifactId>jsoup</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.sun.mail</groupId>
-            <artifactId>mailapi</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
@@ -274,16 +274,16 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
             <artifactId>jackson-module-afterburner</artifactId>
         </dependency>
         <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-        </dependency>
-        <dependency>
             <groupId>com.h3xstream.retirejs</groupId>
             <artifactId>retirejs-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.sonatype.ossindex</groupId>
             <artifactId>ossindex-service-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
         </dependency>
         <dependency>
             <groupId>com.moandjiezana.toml</groupId>
@@ -354,7 +354,7 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
         <dependency>
             <groupId>org.apache.struts</groupId>
             <artifactId>struts2-core</artifactId>
-            <version>2.1.2</version>
+            <version>2.5.26</version>
             <scope>test</scope>
             <optional>true</optional>
         </dependency>
@@ -460,6 +460,10 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
             <groupId>commons-beanutils</groupId>
             <artifactId>commons-beanutils</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.eclipse.packager</groupId>
+            <artifactId>packager-rpm</artifactId>
+        </dependency>
     </dependencies>
     <profiles>
         <profile>
@@ -516,7 +520,7 @@ Copyright (c) 2012 Jeremy Long. All Rights Reserved.
                 <dependency>
                     <groupId>org.postgresql</groupId>
                     <artifactId>postgresql</artifactId>
-                    <version>42.2.16</version>
+                    <version>42.2.22</version>
                 </dependency>
             </dependencies>
             <build>
